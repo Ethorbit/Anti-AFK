@@ -154,13 +154,13 @@
     <ClCompile Include="Anti-AFK.cpp" />
     <ClCompile Include="CurrentWindow.cpp" />
     <ClCompile Include="idleTime.cpp" />
-    <ClCompile Include="INI.cpp" />
+    <ClCompile Include="registry.cpp" />
     <ClCompile Include="winError.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CurrentWindow.h" />
     <ClInclude Include="idleTime.h" />
-    <ClInclude Include="INI.h" />
+    <ClInclude Include="registry.h" />
     <ClInclude Include="winError.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

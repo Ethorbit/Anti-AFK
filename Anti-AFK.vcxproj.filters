@@ -27,7 +27,7 @@
     <ClCompile Include="CurrentWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="INI.cpp">
+    <ClCompile Include="registry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,7 +41,7 @@
     <ClInclude Include="CurrentWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="INI.h">
+    <ClInclude Include="registry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
