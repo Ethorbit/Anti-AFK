@@ -153,12 +153,14 @@
   <ItemGroup>
     <ClCompile Include="afkFind.cpp" />
     <ClCompile Include="Anti-AFK.cpp" />
+    <ClCompile Include="button.cpp" />
     <ClCompile Include="CurrentWindow.cpp" />
     <ClCompile Include="registry.cpp" />
     <ClCompile Include="winError.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="afkFind.h" />
+    <ClInclude Include="button.h" />
     <ClInclude Include="CurrentWindow.h" />
     <ClInclude Include="registry.h" />
     <ClInclude Include="winError.h" />

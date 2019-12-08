@@ -5,50 +5,35 @@
 #include "CurrentWindow.h"
 #include "winError.h"
 #include "afkFind.h"
+#include "button.h"
 
 int main()
 {
-	std::cout << "Type config to change settings" << std::endl;
+	std::cout << "Type config to configure the program" << std::endl;
 
 	// Registry settings:
 	registry Reg;
-	DWORD AFKTime = Reg.getKey(L"AFKTime");
-	DWORD SelectWindowKey = Reg.getKey(L"SelectWindowKey");
+	DWORD AFKTime = Reg.getKey(L"Software\\AntiAFK", L"AFKTime");
+	DWORD SelectWindowKey = Reg.getKey(L"Software\\AntiAFK", L"SelectWindowKey");
+	DWORD* PressButtons = Reg.getAllSubkeys(L"Software\\AntiAFK\\Buttons");
 
+	button Button;
 	if (SelectWindowKey == 0) {
 		std::cout << "What button should be used to select the current window for Anti-AFK to use?" << std::endl;
+		int key = Button.GetButton();
+		Reg.writeSubkey(L"SelectWindowKey", key);
+		SelectWindowKey = Reg.getKey(L"Software\\AntiAFK", L"SelectWindowKey");
 	}
 
-	while (SelectWindowKey == 0) {
-		for (int i = 0; i <= 256; i++) {
-			if (GetAsyncKeyState(i)) {
-				Reg.writeSubkey(L"SelectWindowKey", i);
-				SelectWindowKey = Reg.getKey(L"SelectWindowKey");
-			}
-		}
+	std::wcout << "Press " << Button.GetName(SelectWindowKey) << " to activate Anti-AFK for the current window" << std::endl;
 
-		Sleep(100);
-	} 
-	
 	while (AFKTime == 0) {
 		int secAmount;
 		std::cout << "Amount of seconds to be AFK before automatic activity is applied" << std::endl;
 		std::cin >> secAmount;
 		Reg.writeSubkey(L"AFKTime", secAmount);
-		AFKTime = Reg.getKey(L"AFKTime");
+		AFKTime = Reg.getKey(L"Software\\AntiAFK", L"AFKTime");
 	}
-
-
-	WCHAR keyName[1024];
-	UINT mappedKey = MapVirtualKeyW(SelectWindowKey, NULL);
-	LONG lParam = (mappedKey << 16);
-	int getKey = GetKeyNameTextW(lParam, keyName, 1024);
-	std::wcout << "Press " << keyName << " to activate Anti-AFK for the current window" << std::endl;
-	
-	if (getKey == 0) {
-		winError err(L"Error converting virtual key into text");
-	}
-
 
 	// Get the current window when the user saved key bind is pressed:
 	bool windowSelected = false;
