@@ -1,6 +1,5 @@
 #include "CurrentWindow.h"
 #include <iostream>
-#include <Windows.h>
 #include "winError.h"
 
 CurrentWindow::CurrentWindow() {
@@ -10,6 +9,7 @@ CurrentWindow::CurrentWindow() {
 	if (curWin != NULL) {
 		GetWindowTextW(curWin, curWinTitle, sizeof(curWinTitle) / sizeof(wchar_t));
 		std::wcout << "New window selected: " << curWinTitle << std::endl;
+		CurWin = curWin;
 	} else {
 		winError err(L"Error getting the current window");
 	}
