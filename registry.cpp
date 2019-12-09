@@ -32,9 +32,9 @@ HKEY registry::openKey(const wchar_t* KeyName) {
 	return regKey;
 }
 
-void registry::writeSubkey(const wchar_t* subKeyName, DWORD Value) {
+void registry::writeSubkey(const wchar_t* KeyName, const wchar_t* subKeyName, DWORD Value) {
 	// Open the program's registry key:
-	HKEY regKey = openKey(L"Software\\AntiAFK");
+	HKEY regKey = openKey(KeyName);
 
 	// Create subkey:
 	LSTATUS writeKey = RegSetValueExW(regKey, &subKeyName[0], NULL, REG_DWORD, (LPBYTE)&Value, sizeof(Value));
@@ -53,7 +53,7 @@ DWORD registry::getKey(const wchar_t* KeyName, const wchar_t* subKeyName) {
 
 	if (readKey != ERROR_SUCCESS) {
 		if (ERROR_FILE_NOT_FOUND) { // If the file isn't found then create with default value
-			writeSubkey(subKeyName, 0);
+			writeSubkey(L"Software\\AntiAFK", subKeyName, 0);
 		} else {
 			winError err(L"Error trying to read a registry key");
 		}
@@ -65,24 +65,31 @@ DWORD registry::getKey(const wchar_t* KeyName, const wchar_t* subKeyName) {
 }
 
 DWORD* registry::getAllSubkeys(const wchar_t* KeyName) {
-	DWORD allKeys[100];
-
+	DWORD AllValues[1048] = {0};
 	HKEY regKey = openKey(KeyName);
 
 	// Get the name of every subkey:
-	int iterator = 0;
-	wchar_t subKeyNames[100];
-	int subKeyNamesSize = 100;
-	//LSTATUS enumKeys = RegEnumKeyExW(regKey, iterator, (LPWSTR)&subKeyNames, (LPDWORD)subKeyNamesSize, NULL, NULL, NULL, NULL);
-	//if (enumKeys == ERROR_SUCCESS) { 
-	//	iterator += 1;
-	//}
+	DWORD subKeyValues[1048] = {0};
+	DWORD subKeyValueSize = 1048;
+	DWORD regType = REG_DWORD;
+	DWORD index = 0;
+	wchar_t subKeyNames[1048] = {0};
+	
+	// Loop through subkeys until none are found:
+	for (int i = 0; i < 1048; i++) {
+		subKeyValueSize = 1048; // Resize every time or else memory errors will occur
+	
+		if (RegEnumValueW(regKey, i, (LPWSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)&subKeyValues, &subKeyValueSize) == ERROR_SUCCESS) {
+			AllValues[i] = subKeyValues[0]; // It is unknown why the values are only written to index 0
+		} else if (RegEnumValueW(regKey, i, (LPWSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)&subKeyValues, &subKeyValueSize) != ERROR_NO_MORE_ITEMS) {
+			winError err(L"Error with enumerating registry subkeys");
+		}
 
-	//// Get the value of every subkey:
-	//for (int i = 0; i < iterator; i++) {
-	//	std::cout << i << std::endl;
-	//}
+		if (RegEnumValueW(regKey, i, (LPWSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)&subKeyValues, &subKeyValueSize) == ERROR_NO_MORE_ITEMS) {
+			break; // Save resources by stopping the loop when there are no more subkeys
+		}
+	}
 
 	RegCloseKey(regKey);
-	return allKeys;
+	return AllValues;
 }

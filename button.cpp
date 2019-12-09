@@ -11,6 +11,7 @@ int button::GetButton() {
 	int key = 0;
 	while (key == 0) {
 		for (int i = 0; i <= 256; i++) {
+			std::cout << i << std::endl;
 			if (GetAsyncKeyState(i) && i > 4) { // 1-4 is for mouse buttons
 				key = i;
 			}
@@ -30,7 +31,7 @@ wchar_t* button::GetName(int virtKey) {
 
 	if (getKey == 0) {
 		registry Registry;
-		Registry.writeSubkey(L"SelectWindowKey", 0); // Reset bind since there's something wrong with it
+		Registry.writeSubkey(L"Software\\AntiAFK", L"SelectWindowKey", 0); // Reset bind since there's something wrong with it
 		winError err(L"Error converting the chosen key bind into text");
 		std::abort(); // Stop the program to avoid further errors with this invalid bind
 	}

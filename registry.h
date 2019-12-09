@@ -1,4 +1,3 @@
-#include <iostream>
 #include <Windows.h>
 #pragma once
 
@@ -6,7 +5,7 @@ class registry
 {
 	public: 
 		registry();
-		void writeSubkey(const wchar_t* subKeyName, DWORD Value);
+		void writeSubkey(const wchar_t* KeyName, const wchar_t* subKeyName, DWORD Value);
 		DWORD getKey(const wchar_t* KeyName, const wchar_t* subKeyName);
 		DWORD* getAllSubkeys(const wchar_t*);
 	private:
