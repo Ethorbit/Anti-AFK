@@ -24,6 +24,12 @@ class config
 		int GetButtonCount() {
 			return buttonCount;
 		}
+
+		void SetButtonCount(int count) {
+			buttonCount = count;
+		}
+
+		void Configure();
 	private:
 		void UpdateButtons();
 		DWORD AFKTime = 0;

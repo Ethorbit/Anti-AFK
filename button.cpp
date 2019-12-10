@@ -29,12 +29,12 @@ wchar_t* button::GetName(int virtKey) {
 	LONG lParam = (mappedKey << 16);
 	int getKey = GetKeyNameTextW(lParam, keyName, 1024);
 
-	if (getKey == 0) {
-		registry Registry;
-		Registry.writeSubkey(L"Software\\AntiAFK", L"SelectWindowKey", 0); // Reset bind since there's something wrong with it
-		winError err(L"Error converting the chosen key bind into text");
-		std::abort(); // Stop the program to avoid further errors with this invalid bind
-	}
+	//if (getKey == 0) {
+	//	registry Registry;
+	//	Registry.writeSubkey(L"Software\\AntiAFK", L"SelectWindowKey", 0); // Reset bind since there's something wrong with it
+	//	winError err(L"Error converting the chosen key bind into text");
+	//	std::abort(); // Stop the program to avoid further errors with this invalid bind
+	//}
 
 	std::wcout << "";
 	return keyName;
