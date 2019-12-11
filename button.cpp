@@ -7,21 +7,21 @@
 button::button() {
 }
 
-int button::GetButton() {
-	int key = 0;
-	while (key == 0) {
-		for (int i = 0; i <= 256; i++) {
-			std::cout << i << std::endl;
-			if (GetAsyncKeyState(i) && i > 4) { // 1-4 is for mouse buttons
-				key = i;
-			}
-		} 
-
-		Sleep(100);
-	}
-
-	return key;
-}
+//int button::GetButton() {
+//	int key = 0;
+//	while (key == 0) {
+//		for (int i = 0; i <= 256; i++) {
+//			std::cout << i << std::endl;
+//			if (GetAsyncKeyState(i) && i > 4) { // 1-4 is for mouse buttons
+//				key = i;
+//			}
+//		} 
+//
+//		Sleep(100);
+//	}
+//
+//	return key;
+//}
 
 wchar_t* button::GetName(int virtKey) {
 	wchar_t keyName[1024];

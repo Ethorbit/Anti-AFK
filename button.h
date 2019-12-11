@@ -3,7 +3,7 @@ class button
 {
 	public:
 		button();
-		int GetButton();
+		//int GetButton();
 		wchar_t* GetName(int virtKey);
 };
 

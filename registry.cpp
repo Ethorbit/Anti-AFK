@@ -64,6 +64,20 @@ DWORD registry::getKey(const wchar_t* KeyName, const wchar_t* subKeyName) {
 	return keyValue;
 }
 
+void registry::renameSubKey(const wchar_t* valName, const wchar_t* newName) {
+	// Replace subkey with new subkey:
+	HKEY regKey = openKey(L"Software\\AntiAFK");
+	DWORD keyVal = getKey(L"Software\\AntiAFK\\Buttons", valName);
+	LSTATUS delKey = RegDeleteKeyValueW(regKey, L"Buttons", valName);
+	writeSubkey(L"Software\\AntiAFK\\Buttons", newName, keyVal);
+
+	if (delKey != ERROR_SUCCESS) {
+		winError err(L"Error while trying to delete a registry subkey");
+	}
+
+	RegCloseKey(regKey);
+}
+
 DWORD* registry::getAllSubkeys(const wchar_t* KeyName) {
 	DWORD AllValues[1048] = {0};
 	HKEY regKey = openKey(KeyName);
@@ -92,4 +106,15 @@ DWORD* registry::getAllSubkeys(const wchar_t* KeyName) {
 
 	RegCloseKey(regKey);
 	return AllValues;
+}
+
+void registry::removeButton(const wchar_t* ButtonName) {
+	HKEY regKey = openKey(L"Software\\AntiAFK");
+	LSTATUS delKey = RegDeleteKeyValueW(regKey, L"Buttons", ButtonName);
+
+	if (delKey != ERROR_SUCCESS) {
+		winError err(L"Error while trying to delete a registry subkey");
+	}
+
+	RegCloseKey(regKey);
 }

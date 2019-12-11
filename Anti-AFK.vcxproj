@@ -157,6 +157,7 @@
     <ClCompile Include="config.cpp" />
     <ClCompile Include="CurrentWindow.cpp" />
     <ClCompile Include="registry.cpp" />
+    <ClCompile Include="start.cpp" />
     <ClCompile Include="winError.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -165,6 +166,7 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="CurrentWindow.h" />
     <ClInclude Include="registry.h" />
+    <ClInclude Include="start.h" />
     <ClInclude Include="winError.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

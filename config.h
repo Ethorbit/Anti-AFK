@@ -8,6 +8,7 @@ class config
 		void SetAFKTime();
 		void SetWindowKey();
 		void SetAntiAFKButtons();
+		int inputButton();
 
 		DWORD GetWindowKey() {
 			return SelectWindowKey;
@@ -30,6 +31,10 @@ class config
 		}
 
 		void Configure();
+
+		void SetWindowKey(DWORD key) {
+			SelectWindowKey = key;
+		}
 	private:
 		void UpdateButtons();
 		DWORD AFKTime = 0;
