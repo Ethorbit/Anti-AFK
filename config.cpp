@@ -18,6 +18,8 @@ config::config() {
 void config::Configure() {
 	std::cout << "Press 1 to set the Select Window button \n";
 	std::cout << "Press 2 to modify the buttons that Anti-AFK presses when you're AFK \n";
+	std::cout << "Press 3 to set the amount of seconds to be AFK\n";
+	std::cout << "Press 4 to cancel\n";
 
 	int input = 0;
 
@@ -37,6 +39,13 @@ void config::Configure() {
 			return;
 		case 2:
 			SetAntiAFKButtons();
+			return;
+		case 3:
+			SetAFKTime();
+			return;
+		case 4:
+			start Start;
+			Start.startStuff();
 	}
 }
 
@@ -69,8 +78,21 @@ void config::SetAFKTime() {
 	int secAmount;
 	std::cout << "Amount of seconds to be AFK before automatic activity is applied" << std::endl;
 	std::cin >> secAmount;
+
+	while (secAmount <= 0) {
+		std::cin >> secAmount;
+	}
+
+	while (std::cin.fail()) {
+		std::cin.clear();
+		std::cin.ignore();
+		std::cin >> secAmount;
+	}
+
 	Reg.writeSubkey(L"Software\\AntiAFK", L"AFKTime", secAmount);
 	AFKTime = Reg.getKey(L"Software\\AntiAFK", L"AFKTime");
+	config Config;
+	Config.Configure();
 }
 
 void config::SetWindowKey() {
@@ -91,7 +113,8 @@ void config::SetWindowKey() {
 
 	std::thread t2(function);
 	t2.join();
-	start Start;
+	config Config;
+	Config.Configure();
 }
 
 void config::SetAntiAFKButtons() {
@@ -221,12 +244,12 @@ void config::SetAntiAFKButtons() {
 				}
 			}
 
-			if (input == 2) { // The user wants to remove one of the keys they added
+			if (input == 2) { 
 				input = 0;
 				RemoveButton();
 			}
 
-			if (input == 3) { // User wants a list of buttons added previously
+			if (input == 3) { 
 				ListButtons();
 			}
 
@@ -242,4 +265,6 @@ void config::SetAntiAFKButtons() {
 
 	std::thread t1(function);
 	t1.join();
+	config Config;
+	Config.Configure();
 }

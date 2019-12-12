@@ -4,6 +4,6 @@
 class afkFind
 {
 	public:
-		afkFind(HWND AFKWindow, int afkSeconds);
+		afkFind(int afkSeconds);
 };
 

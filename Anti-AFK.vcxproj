@@ -162,6 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="afkFind.h" />
+    <ClInclude Include="Anti-AFK.h" />
     <ClInclude Include="button.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="CurrentWindow.h" />
