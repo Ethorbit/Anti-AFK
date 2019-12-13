@@ -5,6 +5,7 @@
 #include "registry.h"
 #include "button.h"
 #include "start.h"
+#include "Anti-AFK.h"
 
 registry Reg;
 button Button;
@@ -16,6 +17,7 @@ config::config() {
 }
 
 void config::Configure() {
+	HConfigure = true;
 	std::cout << "Press 1 to set the Select Window button \n";
 	std::cout << "Press 2 to modify the buttons that Anti-AFK presses when you're AFK \n";
 	std::cout << "Press 3 to set the amount of seconds to be AFK\n";
@@ -23,7 +25,9 @@ void config::Configure() {
 
 	int input = 0;
 
-	while (input == 0) {
+	Sleep(200); // Delay required or else the first letter of the input is not visible.
+	std::cin >> input;
+	while (input != 1 && input != 2 && input != 3 && input != 4) {	
 		std::cin >> input;
 
 		if (std::cin.fail()) { // If the user enters something like a letter instead

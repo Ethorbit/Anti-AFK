@@ -7,6 +7,7 @@
 
 afkFind::afkFind(int afkSeconds) {
 	HExit = false;
+	HCheckAFK = true;
 	std::cout << "Waiting for inactivity..." << std::endl;
 
 	auto afkTime = std::chrono::system_clock::now() + std::chrono::seconds(afkSeconds);
