@@ -104,13 +104,11 @@ void config::SetWindowKey() {
 
 	auto function = [this]() {
 		bool exit = false;
-		while (this->inputButton() < 1) {
-		}
-
-		int key = this->inputButton();
+		HCurButton = 0;
+		while (HCurButton == 0) {}
 		system("cls");
-		std::wcout << "Set select window key to " << Button.GetName(key) << std::endl;
-		Reg.writeSubkey(L"Software\\AntiAFK", L"SelectWindowKey", key);
+		std::wcout << "Set select window key to " << Button.GetName(HCurButton) << std::endl;
+		Reg.writeSubkey(L"Software\\AntiAFK", L"SelectWindowKey", HCurButton);
 		this->SetWindowKey(Reg.getKey(L"Software\\AntiAFK", L"SelectWindowKey"));
 		Sleep(500);
 	};
@@ -124,7 +122,7 @@ void config::SetWindowKey() {
 void config::SetAntiAFKButtons() {
 	auto RefreshScr = [](std::wstring newMsg) {
 		system("cls");
-		std::cout << "Press 1 to add another button \n";
+		std::cout << "Press 1 to add a button \n";
 		std::cout << "Press 2 to remove a button \n";
 		std::cout << "Press 3 to list buttons added \n";
 		std::cout << "Press 4 to finish \n";
@@ -137,14 +135,14 @@ void config::SetAntiAFKButtons() {
 	RefreshScr(L"");
 
 	auto ListButtons = [this, RefreshScr]() {
-		if (this->GetButtonCount() == 0) {
+		if (GetButtonCount() == 0) {
 			RefreshScr(L"You have not added any buttons yet.");
 		}
 
 		DWORD* Buttons = Reg.getAllSubkeys(L"Software\\AntiAFK\\Buttons");
 
 		// Print the name of every button the user added:
-		for (int i = 0; i < this->GetButtonCount(); i++) {
+		for (int i = 0; i < GetButtonCount(); i++) {
 			std::cout << i;
 			std::wcout << ": " << Button.GetName(Buttons[i]) << " (" << Buttons[i] << ")" << std::endl; 
 		}
@@ -153,7 +151,7 @@ void config::SetAntiAFKButtons() {
 	auto RemoveButton = [this, RefreshScr, ListButtons]() {
 		char remove[100];
 		int removeInt = -1;
-		if (this->GetButtonCount() == 0) {
+		if (GetButtonCount() == 0) {
 			RefreshScr(L"There are no keys to remove.");
 		} else {
 			ListButtons();
@@ -162,7 +160,7 @@ void config::SetAntiAFKButtons() {
 			std::cin >> remove;
 			removeInt = atoi(remove);
 
-			while (removeInt == 0 && strcmp(remove, "back") != 0 && strcmp(remove, "0") != 0 || removeInt < 0 || removeInt > this->GetButtonCount()) {
+			while (removeInt == 0 && strcmp(remove, "back") != 0 && strcmp(remove, "0") != 0 || removeInt < 0 || removeInt > GetButtonCount()) {
 				std::cout << strlen(remove) << std::endl;
 				ListButtons();
 				std::cin >> remove;
@@ -175,21 +173,25 @@ void config::SetAntiAFKButtons() {
 			}
 
 			wchar_t subKeyName[200];
-			swprintf_s(subKeyName, 200, L"Button %i", removeInt + 1);
+			swprintf_s(subKeyName, 200, L"Button%i", removeInt + 1);
 			this->SetButtonCount(this->GetButtonCount() - 1);
 
 			for (int i = 0; i <= this->GetButtonCount(); i++) {
-				wchar_t valName[200];
-				wchar_t newName[200];
+				wchar_t valName[200], newName[200], valName2[200],newName2[200];
 				if (i > removeInt) {
-					swprintf_s(valName, 200, L"Button %i", i + 1);
+					swprintf_s(valName, 200, L"Button%i", i + 1);
+					swprintf_s(valName2, 200, L"Button%iTime", i + 1);
 					if (i + 1 != 1) { // Don't replace anything if it's the first button
-						swprintf_s(newName, 200, L"Button %i", i);
-						Reg.renameSubKey(valName, newName);
+						swprintf_s(newName, 200, L"Button%i", i);
+						swprintf_s(newName2, 200, L"Button%iTime", i);
+						Reg.renameSubKey(valName, newName, true);
+						Reg.renameSubKey(valName2, newName2, false);
 					} 
 				} else if (i == removeInt) {
-					swprintf_s(valName, 200, L"Button %i", i + 1);
-					Reg.removeButton(valName); 
+					swprintf_s(valName, 200, L"Button%i", i + 1);
+					swprintf_s(valName2, 200, L"Button%iTime", i + 1);
+					Reg.removeButton(valName, true); 
+					Reg.removeButton(valName2, false);
 				}
 			}
 
@@ -220,16 +222,39 @@ void config::SetAntiAFKButtons() {
 	};
 
 	auto AddButton = [this, RefreshScr](int button) {
-		this->SetButtonCount(this->GetButtonCount() + 1);
+		SetButtonCount(GetButtonCount() + 1);
 		system("cls");
-		std::cout << "Press 1 to add another button \n";
+		std::cout << "Press 1 to add a button \n";
 		std::cout << "Press 2 to remove a button \n";
 		std::cout << "Press 3 to list buttons added \n";
 		std::cout << "Press 4 to finish \n";
-		std::wcout << "Adding " << Button.GetName(button) << " to Anti-AFK. Total buttons added: " << this->GetButtonCount() << std::endl;
 		wchar_t buttonFormat[400];
-		swprintf_s(buttonFormat, sizeof(buttonFormat) / sizeof(wchar_t), L"Button %i", this->GetButtonCount());
+		wchar_t buttonTimeFormat[400];
+		swprintf_s(buttonFormat, sizeof(buttonFormat) / sizeof(wchar_t), L"Button%i", GetButtonCount());
+		swprintf_s(buttonTimeFormat, sizeof(buttonTimeFormat) / sizeof(wchar_t), L"Button%iTime", GetButtonCount());
 		Reg.writeSubkey(L"Software\\AntiAFK\\Buttons", buttonFormat, button);
+		Reg.writeSubkey(L"Software\\AntiAFK\\ButtonTimes", buttonTimeFormat, 0); // Save as 0 seconds incase the next part never finishes
+
+		DWORD holdTime = 0;
+		std::wcout << "How many seconds should " << Button.GetName(button) << " be held for? (Max is: " << GetAFKTime() << ")" << std::endl;
+	
+		while (true) {
+			std::cin >> holdTime;
+			if (std::cin.fail()) {
+				std::cin.clear();
+				std::cin.ignore();
+				std::cout << "Enter a valid amount of seconds:" << std::endl;		
+			} else {
+				if (holdTime > GetAFKTime()) {
+					std::cout << "The button cannot be held longer than the AFK time (" << GetAFKTime() << ")" << std::endl;
+				} else {
+					break;
+				}
+			}
+		}
+
+		Reg.writeSubkey(L"Software\\AntiAFK\\ButtonTimes", buttonTimeFormat, holdTime);
+		std::wcout << "Adding " << Button.GetName(button) << " to Anti-AFK. Total buttons added: " << GetButtonCount() << std::endl;
 	};
 
 	auto function = [this, AddButton, RemoveButton, GetInput, RefreshScr, ListButtons]() {
@@ -243,9 +268,9 @@ void config::SetAntiAFKButtons() {
 				std::cout << "Press a key" << std::endl;
 				Sleep(200); // Wait 200ms to stop GetAsyncKey from getting the key the user just pressed to add keys
 				input = 0; // Reset the input so GetInput() is called again
-				if (inputButton() > 1 && inputButton() != 13) { // 13 is the enter key
-					AddButton(inputButton());
-				}
+				HCurButton = 0;
+				while (HCurButton == 0) {}
+				AddButton(HCurButton);
 			}
 
 			if (input == 2) { 

@@ -5,6 +5,7 @@ registry::registry() {
 	// Create default program keys:
 	createKey(L"Software\\AntiAFK");
 	createKey(L"Software\\AntiAFK\\Buttons");
+	createKey(L"Software\\AntiAFK\\ButtonTimes");
 }
 
 void registry::createKey(const wchar_t* KeyName) {
@@ -64,12 +65,21 @@ DWORD registry::getKey(const wchar_t* KeyName, const wchar_t* subKeyName) {
 	return keyValue;
 }
 
-void registry::renameSubKey(const wchar_t* valName, const wchar_t* newName) {
+void registry::renameSubKey(const wchar_t* valName, const wchar_t* newName, bool button) {
+	DWORD keyVal = NULL;
+	LSTATUS delKey = NULL;
+
 	// Replace subkey with new subkey:
 	HKEY regKey = openKey(L"Software\\AntiAFK");
-	DWORD keyVal = getKey(L"Software\\AntiAFK\\Buttons", valName);
-	LSTATUS delKey = RegDeleteKeyValueW(regKey, L"Buttons", valName);
-	writeSubkey(L"Software\\AntiAFK\\Buttons", newName, keyVal);
+	if (button == true) {
+		keyVal = getKey(L"Software\\AntiAFK\\Buttons", valName);
+		delKey = RegDeleteKeyValueW(regKey, L"Buttons", valName);
+		writeSubkey(L"Software\\AntiAFK\\Buttons", newName, keyVal);
+	} else {
+		keyVal = getKey(L"Software\\AntiAFK\\ButtonTimes", valName);
+		delKey = RegDeleteKeyValueW(regKey, L"ButtonTimes", valName);
+		writeSubkey(L"Software\\AntiAFK\\ButtonTimes", newName, keyVal);
+	}
 
 	if (delKey != ERROR_SUCCESS) {
 		winError err(L"Error while trying to delete a registry subkey");
@@ -108,10 +118,16 @@ DWORD* registry::getAllSubkeys(const wchar_t* KeyName) {
 	return AllValues;
 }
 
-void registry::removeButton(const wchar_t* ButtonName) {
+void registry::removeButton(const wchar_t* ButtonName, bool button) {
+	LSTATUS delKey = NULL;
 	HKEY regKey = openKey(L"Software\\AntiAFK");
-	LSTATUS delKey = RegDeleteKeyValueW(regKey, L"Buttons", ButtonName);
 
+	if (button == true) {
+		delKey = RegDeleteKeyValueW(regKey, L"Buttons", ButtonName);
+	} else {
+		delKey = RegDeleteKeyValueW(regKey, L"ButtonTimes", ButtonName);
+	}
+	
 	if (delKey != ERROR_SUCCESS) {
 		winError err(L"Error while trying to delete a registry subkey");
 	}

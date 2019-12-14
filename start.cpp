@@ -10,11 +10,11 @@
 #include "Anti-AFK.h"
 
 start::start() {
-	HCheckAFK = false;
-	HConfigure = false;
 }
 
 void start::startStuff() {
+	HCheckAFK = false;
+	HConfigure = false;
 	bool Exit = false;
 	config Config;
 	button Button;
@@ -26,7 +26,7 @@ void start::startStuff() {
 	auto WaitForSelection = [&Config, &doWin, &Exit]() {
 		// Get the current window when the user saved key bind is pressed:
 		bool windowSelected = false;
-		HCurButton = 0; // Reset in case the last button was the select window key
+		HCurButton = -1; // Reset in case the last button was the select window key
 		while (!Exit) {
 			Sleep(10);
 			if (HCurButton == Config.GetWindowKey()) {
