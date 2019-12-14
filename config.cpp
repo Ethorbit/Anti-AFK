@@ -18,16 +18,16 @@ config::config() {
 
 void config::Configure() {
 	HConfigure = true;
-	std::cout << "Press 1 to set the Select Window button \n";
-	std::cout << "Press 2 to modify the buttons that Anti-AFK presses when you're AFK \n";
+	std::cout << "Press 1 to set the Select Window button\n";
+	std::cout << "Press 2 to modify the buttons that Anti-AFK presses when you're AFK\n";
 	std::cout << "Press 3 to set the amount of seconds to be AFK\n";
-	std::cout << "Press 4 to cancel\n";
+	std::cout << "Press 4 to set the frequency (in seconds) that Anti-AFK should press buttons when you're AFK.\n";
+	std::cout << "Press 5 to cancel\n";
 
 	int input = 0;
-
 	Sleep(200); // Delay required or else the first letter of the input is not visible.
 	std::cin >> input;
-	while (input != 1 && input != 2 && input != 3 && input != 4) {	
+	while (input < 1 || input > 5) {
 		std::cin >> input;
 
 		if (std::cin.fail()) { // If the user enters something like a letter instead
@@ -48,6 +48,9 @@ void config::Configure() {
 			SetAFKTime();
 			return;
 		case 4:
+			SetButtonFrequency();
+			return;
+		case 5:
 			start Start;
 			Start.startStuff();
 	}
@@ -95,6 +98,39 @@ void config::SetAFKTime() {
 
 	Reg.writeSubkey(L"Software\\AntiAFK", L"AFKTime", secAmount);
 	AFKTime = Reg.getKey(L"Software\\AntiAFK", L"AFKTime");
+	system("cls");
+	if (secAmount > 1) {
+		std::cout << "Set AFK time to " << secAmount << " seconds." << std::endl;
+	} else {
+		std::cout << "Set AFK time to " << secAmount << " second." << std::endl;
+	}
+	config Config;
+	Config.Configure();
+}
+
+void config::SetButtonFrequency() {
+	int secAmount;
+	std::cout << "Every time this amount of seconds pass by have Anti-AFK press a button when AFK:" << std::endl;
+	std::cin >> secAmount;
+
+	while (secAmount <= 0) {
+		std::cin >> secAmount;
+	}
+
+	while (std::cin.fail()) {
+		std::cin.clear();
+		std::cin.ignore();
+		std::cin >> secAmount;
+	}
+
+	Reg.writeSubkey(L"Software\\AntiAFK", L"ButtonFrequency", secAmount);
+	BtnFreq = Reg.getKey(L"Software\\AntiAFK", L"ButtonFrequency");
+	system("cls");
+	if (secAmount > 1) {
+		std::cout << "Set Anti-AFK's button frequency to " << secAmount << " seconds." << std::endl;
+	} else {
+		std::cout << "Set Anti-AFK's button frequency to " << secAmount << " second." << std::endl;
+	}
 	config Config;
 	Config.Configure();
 }
@@ -109,7 +145,7 @@ void config::SetWindowKey() {
 		system("cls");
 		std::wcout << "Set select window key to " << Button.GetName(HCurButton) << std::endl;
 		Reg.writeSubkey(L"Software\\AntiAFK", L"SelectWindowKey", HCurButton);
-		this->SetWindowKey(Reg.getKey(L"Software\\AntiAFK", L"SelectWindowKey"));
+		SetWindowKey(Reg.getKey(L"Software\\AntiAFK", L"SelectWindowKey"));
 		Sleep(500);
 	};
 

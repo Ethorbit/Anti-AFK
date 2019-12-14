@@ -35,11 +35,16 @@ class config
 		void SetWindowKey(DWORD key) {
 			SelectWindowKey = key;
 		}
+
+		int GetButtonFrequency() {
+			return BtnFreq;
+		}
 	private:
 		void UpdateButtons();
+		void SetButtonFrequency();
 		DWORD AFKTime = 0;
 		DWORD SelectWindowKey = 0;
 		DWORD* PressButtons = nullptr;
-		int buttonCount = 0;
+		int buttonCount, BtnFreq = 0;
 };
 
