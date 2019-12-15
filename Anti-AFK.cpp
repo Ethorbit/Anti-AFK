@@ -16,11 +16,13 @@ LRESULT CALLBACK KeyboardPress(int nCode, WPARAM wParam, LPARAM lParam) {
 		HCurButton = kbStruct->vkCode;
 	 
 		if (kbStruct->vkCode == VK_ESCAPE) {
-			HExit = true;
+			if (GetForegroundWindow() == GetConsoleWindow()) { // Don't exit if they do escape in another window
+				HExit = true;
+			}
 		}
 
 		if (GetForegroundWindow() == HAntiAFKWindow) {
-			if (HAutoPress == false) { // Make sure the key was not automated from Anti-AFK
+			if (HAutoPress == false && HAutoWindow == false) { // Make sure the key or window was not automated from Anti-AFK
 				HActive = true; // User pressed a button
 			}
 		}
@@ -31,21 +33,23 @@ LRESULT CALLBACK KeyboardPress(int nCode, WPARAM wParam, LPARAM lParam) {
 
 LRESULT CALLBACK MouseMove(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (GetForegroundWindow() == HAntiAFKWindow) {
-		HActive = true;
+		if (HAutoWindow == false) { 
+			HActive = true;
+		}
 	}
 
 	return CallNextHookEx(NULL, nCode, wParam, lParam);
 }
 
 HWND HAntiAFKWindow;
-bool HExit, HActive, HCheckAFK, HConfigure, HAutoPress;
+bool HExit, HActive, HCheckAFK, HConfigure, HAutoPress, HAutoWindow;
 int HCurButton;
 std::string HCommand;
 
 int main()
 {
 	HAntiAFKWindow = NULL;
-	HExit, HActive, HCheckAFK, HConfigure, HAutoPress = false;
+	HExit, HActive, HCheckAFK, HConfigure, HAutoPress, HAutoWindow = false;
 	HCurButton = -1;
 	HCommand = "";
 

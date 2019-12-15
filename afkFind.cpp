@@ -73,6 +73,7 @@ afkFind::afkFind(int afkSeconds) {
 				input.ki.dwFlags = 0; //KEYEVENTF_UNICODE
 				input.ki.wScan = MapVirtualKeyW(SavedButtons[RandKey], MAPVK_VK_TO_VSC); // Scan code required or DirectX games will not process keys
 				input.ki.wVk = SavedButtons[RandKey];
+				HAutoWindow = true;
 				SetForegroundWindow(HAntiAFKWindow); // Set the window to the selected one real quick for SendInput to work
 				HAutoPress = true; // Don't let the keyboard hook think this is a key the user pressed manually
 				SendInput(1, &input, sizeof(input));
@@ -90,6 +91,7 @@ afkFind::afkFind(int afkSeconds) {
 
 			if (PrevWnd != NULL) { // Set the window back to what it was before
 				SetForegroundWindow(PrevWnd);
+				HAutoWindow = false;
 			}
 		};
 
