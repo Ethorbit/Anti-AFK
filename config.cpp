@@ -13,6 +13,7 @@ button Button;
 config::config() {
 	AFKTime = Reg.getKey(L"Software\\AntiAFK", L"AFKTime");
 	SelectWindowKey = Reg.getKey(L"Software\\AntiAFK", L"SelectWindowKey");
+	BtnFreq = Reg.getKey(L"Software\\AntiAFK", L"ButtonFrequency");
 	UpdateButtons();
 }
 

@@ -20,7 +20,9 @@ LRESULT CALLBACK KeyboardPress(int nCode, WPARAM wParam, LPARAM lParam) {
 		}
 
 		if (GetForegroundWindow() == HAntiAFKWindow) {
-			HActive = true; // User pressed a button
+			if (HAutoPress == false) { // Make sure the key was not automated from Anti-AFK
+				HActive = true; // User pressed a button
+			}
 		}
 	}
 	
@@ -36,14 +38,14 @@ LRESULT CALLBACK MouseMove(int nCode, WPARAM wParam, LPARAM lParam) {
 }
 
 HWND HAntiAFKWindow;
-bool HExit, HActive, HCheckAFK, HConfigure;
+bool HExit, HActive, HCheckAFK, HConfigure, HAutoPress;
 int HCurButton;
 std::string HCommand;
 
 int main()
 {
 	HAntiAFKWindow = NULL;
-	HExit, HActive, HCheckAFK, HConfigure = false;
+	HExit, HActive, HCheckAFK, HConfigure, HAutoPress = false;
 	HCurButton = -1;
 	HCommand = "";
 
@@ -68,12 +70,14 @@ int main()
 
 			while (true) {
 				auto RefreshScr = [&Button, &Config](std::string text) {
-					system("cls");
-					std::cout << "Type config to configure the program" << std::endl;
-					std::wcout << "Press " << Button.GetName(Config.GetWindowKey()) << " to activate Anti-AFK for the current window" << std::endl;
+					if (!HCheckAFK && !HConfigure) {
+						system("cls");
+						std::cout << "Type config to configure the program" << std::endl;
+						std::wcout << "Press " << Button.GetName(Config.GetWindowKey()) << " to activate Anti-AFK for the current window" << std::endl;
 
-					if (text.length() > 0) {
-						std::cout << text;
+						if (text.length() > 0) {
+							std::cout << text;
+						}
 					}
 				};
 
