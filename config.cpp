@@ -1,5 +1,4 @@
 #include "config.h"
-#include <iostream>
 #include <string>
 #include <thread>
 #include "registry.h"
@@ -15,20 +14,22 @@ config::config() {
 	SelectWindowKey = Reg.getKey(L"Software\\AntiAFK", L"SelectWindowKey");
 	BtnFreq = Reg.getKey(L"Software\\AntiAFK", L"ButtonFrequency");
 	UpdateButtons();
+	UpdateCoords();
 }
 
 void config::Configure() {
 	HConfigure = true;
 	std::cout << "Press 1 to set the Select Window button\n";
-	std::cout << "Press 2 to modify the buttons that Anti-AFK presses when you're AFK\n";
-	std::cout << "Press 3 to set the amount of seconds to be AFK\n";
-	std::cout << "Press 4 to set the frequency (in seconds) that Anti-AFK should press buttons when you're AFK.\n";
-	std::cout << "Press 5 to cancel\n";
+	std::cout << "Press 2 to modify the buttons that Anti-AFK presses when AFK\n";
+	std::cout << "Press 3 to modify the mouse coordinates for Anti-AFK to move your mouse to when AFK\n";
+	std::cout << "Press 4 to set the amount of seconds to be AFK\n";
+	std::cout << "Press 5 to set the frequency (in seconds) that Anti-AFK should apply activity when AFK\n";
+	std::cout << "Press 6 to cancel\n";
 
 	int input = 0;
 	Sleep(200); // Delay required or else the first letter of the input is not visible.
 	std::cin >> input;
-	while (input < 1 || input > 5) {
+	while (input < 1 || input > 6) {
 		std::cin >> input;
 
 		if (std::cin.fail()) { // If the user enters something like a letter instead
@@ -46,12 +47,15 @@ void config::Configure() {
 			SetAntiAFKButtons();
 			return;
 		case 3:
-			SetAFKTime();
+			SetAntiAFKMouseCoords();
 			return;
 		case 4:
-			SetButtonFrequency();
+			SetAFKTime();
 			return;
 		case 5:
+			SetButtonFrequency();
+			return;
+		case 6:
 			start Start;
 			Start.startStuff();
 	}
@@ -78,6 +82,19 @@ void config::UpdateButtons() {
 	for (int i = 0; i < 100; i++) {
 		if (PressButtons[i] > 0) {
 			buttonCount++;
+		}
+	}
+}
+
+void config::UpdateCoords() {
+	MouseCoords = Reg.getAllSubkeysString(L"Software\\AntiAFK\\MouseCoords");
+	coordCount = 0;
+
+	for (int i = 0; i < 100; i++) {
+		if (i < MouseCoords.size()) {
+			if (MouseCoords[i].length() > 0) {	
+				coordCount++;
+			}
 		}
 	}
 }
@@ -320,7 +337,7 @@ void config::SetAntiAFKButtons() {
 			}
 
 			if (input == 4) { // User wants to exit
-				if (this->GetButtonCount() == 0) {
+				if (GetButtonCount() == 0) {
 					RefreshScr(L"You must add at least 1 key for Anti-AFK");
 				} else {
 					break; 
@@ -333,4 +350,56 @@ void config::SetAntiAFKButtons() {
 	t1.join();
 	config Config;
 	Config.Configure();
+}
+
+void config::SetAntiAFKMouseCoords() {
+	int x, y;
+	int minX = GetSystemMetrics(SM_CXSCREEN) * -1, maxX = GetSystemMetrics(SM_CXSCREEN);
+	int minY = GetSystemMetrics(SM_CYSCREEN) * -1, maxY = GetSystemMetrics(SM_CYSCREEN);
+
+	std::cout << "Enter the X value" << std::endl;
+	std::cin >> x;
+	while (true) {
+		if (x <= maxX && x >= minX) {
+			break;
+		}
+
+		if (x > maxX || x < minX) {
+			std::cout << "ERROR: X value out of range, max: " << maxX << std::endl;
+			std::cin >> x;
+		}
+
+		if (std::cin.fail()) {
+			std::cin.clear();
+			std::cin.ignore();
+			std::cin >> x;
+		}
+	}
+
+	std::cout << "Enter the Y value" << std::endl;
+	std::cin >> y;
+	while (true) {
+		if (y <= maxY && y >= minY) {
+			break;
+		}
+
+		if (y > maxY || y < minY) {
+			std::cout << "ERROR: Y value out of range, max: " << maxY << std::endl;
+			std::cin >> y;
+		};
+
+		if (std::cin.fail()) {
+			std::cin.clear();
+			std::cin.ignore();
+			std::cin >> y;
+		}
+	}
+
+	coordCount += 1;
+	char format[100];
+	sprintf_s(format, sizeof(format), "Coords%i", GetCoordCount());
+	char coords[100];
+	sprintf_s(coords, 100, "%i,%i", x, y);
+	Reg.writeSubkeyString(L"Software\\AntiAFK\\MouseCoords", format, coords);
+	std::cout << "Added mouse coordinates for Anti-AFK" << std::endl; 
 }

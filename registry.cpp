@@ -6,6 +6,7 @@ registry::registry() {
 	createKey(L"Software\\AntiAFK");
 	createKey(L"Software\\AntiAFK\\Buttons");
 	createKey(L"Software\\AntiAFK\\ButtonTimes");
+	createKey(L"Software\\AntiAFK\\MouseCoords");
 }
 
 void registry::createKey(const wchar_t* KeyName) {
@@ -38,7 +39,20 @@ void registry::writeSubkey(const wchar_t* KeyName, const wchar_t* subKeyName, DW
 	HKEY regKey = openKey(KeyName);
 
 	// Create subkey:
-	LSTATUS writeKey = RegSetValueExW(regKey, &subKeyName[0], NULL, REG_DWORD, (LPBYTE)&Value, sizeof(Value));
+	LSTATUS writeKey = RegSetValueExW(regKey, &subKeyName[0], NULL, REG_DWORD, (LPBYTE)&Value, 100);
+	if (writeKey != ERROR_SUCCESS) {
+		winError err(L"Error while trying to write a value to the program's registry key");
+	}
+
+	RegCloseKey(regKey);
+}
+
+void registry::writeSubkeyString(const wchar_t* KeyName, const char* subKeyName, const char* Value) {
+	// Open the program's registry key:
+	HKEY regKey = openKey(KeyName);
+
+	// Create subkey:
+	LSTATUS writeKey = RegSetValueExA(regKey, subKeyName, NULL, REG_SZ, (LPBYTE)Value, 100);
 	if (writeKey != ERROR_SUCCESS) {
 		winError err(L"Error while trying to write a value to the program's registry key");
 	}
@@ -106,6 +120,37 @@ DWORD* registry::getAllSubkeys(const wchar_t* KeyName) {
 		if (RegEnumValueW(regKey, i, (LPWSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)&subKeyValues, &subKeyValueSize) == ERROR_SUCCESS) {
 			AllValues[i] = subKeyValues[0]; // It is unknown why the values are only written to index 0
 		} else if (RegEnumValueW(regKey, i, (LPWSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)&subKeyValues, &subKeyValueSize) != ERROR_NO_MORE_ITEMS) {
+			winError err(L"Error with enumerating registry subkeys");
+		}
+
+		if (RegEnumValueW(regKey, i, (LPWSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)&subKeyValues, &subKeyValueSize) == ERROR_NO_MORE_ITEMS) {
+			break; // Save resources by stopping the loop when there are no more subkeys
+		}
+	}
+
+	RegCloseKey(regKey);
+	return AllValues;
+}
+
+std::vector<std::string> registry::getAllSubkeysString(const wchar_t* KeyName) {
+	std::vector<std::string> AllValues;
+	HKEY regKey = openKey(KeyName);
+
+	// Get the name of every subkey:
+	char subKeyValues[1048];
+	DWORD subKeyValueSize = 1048;
+	DWORD regType = REG_SZ;
+	DWORD index = 0;
+	wchar_t subKeyNames[1048] = { 0 };
+
+	// Loop through subkeys until none are found:
+	for (int i = 0; i < 1048; i++) {
+		subKeyValueSize = 1048; // Resize every time or else memory errors will occur
+
+		if (RegEnumValueA(regKey, i, (LPSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)&subKeyValues, &subKeyValueSize) == ERROR_SUCCESS) {
+			AllValues.push_back(subKeyValues); // It is unknown why the values are only written to index 0
+		}
+		else if (RegEnumValueW(regKey, i, (LPWSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)&subKeyValues, &subKeyValueSize) != ERROR_NO_MORE_ITEMS) {
 			winError err(L"Error with enumerating registry subkeys");
 		}
 
