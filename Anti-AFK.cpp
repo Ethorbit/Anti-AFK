@@ -33,7 +33,7 @@ LRESULT CALLBACK KeyboardPress(int nCode, WPARAM wParam, LPARAM lParam) {
 
 LRESULT CALLBACK MouseMove(int nCode, WPARAM wParam, LPARAM lParam) {
 	if (GetForegroundWindow() == HAntiAFKWindow) {
-		if (HAutoWindow == false) { 
+		if (HAutoWindow == false && HAutoMouse == false) {
 			HActive = true;
 		}
 	}
@@ -42,14 +42,14 @@ LRESULT CALLBACK MouseMove(int nCode, WPARAM wParam, LPARAM lParam) {
 }
 
 HWND HAntiAFKWindow;
-bool HExit, HActive, HCheckAFK, HConfigure, HAutoPress, HAutoWindow;
+bool HExit, HActive, HAutoMouse, HCheckAFK, HConfigure, HAutoPress, HAutoWindow;
 int HCurButton;
 std::string HCommand;
 
 int main()
 {
 	HAntiAFKWindow = NULL;
-	HExit, HActive, HCheckAFK, HConfigure, HAutoPress, HAutoWindow = false;
+	HExit, HActive, HAutoMouse, HCheckAFK, HConfigure, HAutoPress, HAutoWindow = false;
 	HCurButton = -1;
 	HCommand = "";
 

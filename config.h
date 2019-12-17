@@ -1,5 +1,7 @@
 #pragma once
 #include <Windows.h>
+#include <iostream>
+#include <vector>
 
 class config
 {
@@ -22,8 +24,16 @@ class config
 			return PressButtons;
 		}
 
+		std::vector<std::wstring> GetMouseCoords() {
+			return MouseCoords;
+		}
+
 		int GetButtonCount() {
 			return buttonCount;
+		}
+
+		int GetCoordCount() {
+			return coordCount;
 		}
 
 		void SetButtonCount(int count) {
@@ -39,12 +49,24 @@ class config
 		int GetButtonFrequency() {
 			return BtnFreq;
 		}
+
+		int* GetXCoords() {
+			return mouseX;
+		}
+
+		int* GetYCoords() {
+			return mouseY;
+		}
 	private:
 		void UpdateButtons();
+		void UpdateCoords();
 		void SetButtonFrequency();
+		void SetAntiAFKMouseCoords();
 		DWORD AFKTime = 0;
 		DWORD SelectWindowKey = 0;
 		DWORD* PressButtons = nullptr;
-		int buttonCount, BtnFreq = 0;
+		std::vector<std::wstring>MouseCoords;
+		int buttonCount, coordCount, BtnFreq = 0;
+		int mouseX[100], mouseY[100] {-1};
 };
 
