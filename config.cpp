@@ -61,18 +61,18 @@ void config::Configure() {
 	}
 }
 
-int config::inputButton() {
-	int key = 0;
-	while (key == 0) {
-		for (int i = 0; i <= 256; i++) {
-			if (GetAsyncKeyState(i) && i > 4 && i != 13) { // 1-4 is for mouse buttons, 13 is for Enter
-				key = i;
-			}
-		}
-	}
-
-	return key;
-}
+//int config::inputButton() {
+//	int key = 0;
+//	while (key == 0) {
+//		for (int i = 0; i <= 256; i++) {
+//			if (GetAsyncKeyState(i) && i > 4 && i != 13) { // 1-4 is for mouse buttons, 13 is for Enter
+//				key = i;
+//			}
+//		}
+//	}
+//
+//	return key;
+//}
 
 void config::UpdateButtons() {
 	PressButtons = Reg.getAllSubkeys(L"Software\\AntiAFK\\Buttons");
@@ -353,53 +353,180 @@ void config::SetAntiAFKButtons() {
 }
 
 void config::SetAntiAFKMouseCoords() {
-	int x, y;
-	int minX = GetSystemMetrics(SM_CXSCREEN) * -1, maxX = GetSystemMetrics(SM_CXSCREEN);
-	int minY = GetSystemMetrics(SM_CYSCREEN) * -1, maxY = GetSystemMetrics(SM_CYSCREEN);
+	auto RefreshScr = [](std::wstring newMsg) {
+		system("cls");
+		std::cout << "Press 1 to add mouse coordinates \n";
+		std::cout << "Press 2 to remove mouse coordinates \n";
+		std::cout << "Press 3 to list mouse coordinates \n";
+		std::cout << "Press 4 to finish \n";
 
-	std::cout << "Enter the X value" << std::endl;
-	std::cin >> x;
-	while (true) {
-		if (x <= maxX && x >= minX) {
-			break;
+		if (newMsg.length() > 0) {
+			std::wcout << newMsg << std::endl;
+		}
+	};
+
+	auto GetInput = [RefreshScr]() {
+		int input = 0;
+		std::cin >> input;
+		while (input < 0 || input > 4) {
+			input = 0;
+			RefreshScr(L"");
 		}
 
-		if (x > maxX || x < minX) {
-			std::cout << "ERROR: X value out of range, max: " << maxX << std::endl;
-			std::cin >> x;
+		while (input < 0 || input > 4) {
+			std::cin >> input;
 		}
 
 		if (std::cin.fail()) {
 			std::cin.clear();
 			std::cin.ignore();
-			std::cin >> x;
-		}
-	}
-
-	std::cout << "Enter the Y value" << std::endl;
-	std::cin >> y;
-	while (true) {
-		if (y <= maxY && y >= minY) {
-			break;
+			RefreshScr(L"Enter a valid number");
+			input = 0;
 		}
 
-		if (y > maxY || y < minY) {
-			std::cout << "ERROR: Y value out of range, max: " << maxY << std::endl;
-			std::cin >> y;
-		};
+		return input;
+	};
 
-		if (std::cin.fail()) {
-			std::cin.clear();
-			std::cin.ignore();
-			std::cin >> y;
+	auto ListMouseCoords = [this, RefreshScr]() {
+		if (coordCount == 0) {
+			RefreshScr(L"You have not added any mouse coordinates yet.");
 		}
-	}
 
-	coordCount += 1;
-	char format[100];
-	sprintf_s(format, sizeof(format), "Coords%i", GetCoordCount());
-	char coords[100];
-	sprintf_s(coords, 100, "%i,%i", x, y);
-	Reg.writeSubkeyString(L"Software\\AntiAFK\\MouseCoords", format, coords);
-	std::cout << "Added mouse coordinates for Anti-AFK" << std::endl; 
+		std::vector<std::wstring> Coords = Reg.getAllSubkeysString(L"Software\\AntiAFK\\MouseCoords");
+
+		// Print the name of every mouse coord the user added:
+		for (int i = 0; i < coordCount; i++) {
+			std::cout << i;
+			std::wcout << ": " << Coords[i] << std::endl;
+		}
+	};
+
+	auto RemoveMouseCoords = [this, RefreshScr, ListMouseCoords]() {
+		char remove[100];
+		int removeInt = -1;
+		if (GetButtonCount() == 0) {
+			RefreshScr(L"There are no coordinates to remove.");
+		} else {
+			ListMouseCoords();
+			std::cout << "Enter the number of the mouse coords you want to remove" << std::endl;
+			std::cin >> remove;
+			removeInt = atoi(remove);
+
+			while (removeInt == 0 && strcmp(remove, "back") != 0 && strcmp(remove, "0") != 0 || removeInt < 0 || removeInt > coordCount) {
+				ListMouseCoords();
+				std::cin >> remove;
+				removeInt = atoi(remove);
+			}
+
+			while (strcmp(remove, "back") == 0) {
+				RefreshScr(L"");
+				return;
+			}
+
+			wchar_t subKeyName[200];
+			swprintf_s(subKeyName, 200, L"Coords%i", removeInt + 1);
+			coordCount -= 1;
+			for (int i = 0; i <= coordCount; i++) {
+				wchar_t valName[200], newName[200];
+				if (i > removeInt) {
+					swprintf_s(valName, 200, L"Coords%i", i + 1);
+					if (i + 1 != 1) { // Don't replace anything if it's the first coords
+						swprintf_s(newName, 200, L"Coords%i", i);
+						Reg.renameSubKeyString(valName, newName);
+					}
+				} else if (i == removeInt) {
+					swprintf_s(valName, 200, L"Coords%i", i + 1);
+					Reg.removeCoords(valName);
+				}
+			}
+
+			RefreshScr(L"Removed mouse coordinates from Anti-AFK");
+		}
+	};
+
+	auto AddMouseCoords = [this, RefreshScr]() {
+		int x, y;
+		int minX = GetSystemMetrics(SM_CXSCREEN) * -1, maxX = GetSystemMetrics(SM_CXSCREEN);
+		int minY = GetSystemMetrics(SM_CYSCREEN) * -1, maxY = GetSystemMetrics(SM_CYSCREEN);
+	
+		std::cout << "Enter the X value" << std::endl;
+		std::cin >> x;
+		while (true) {
+			if (x <= maxX && x >= minX) {
+				break;
+			}
+
+			if (x > maxX || x < minX) {
+				std::cout << "ERROR: X value out of range, max: " << maxX << std::endl;
+				std::cin >> x;
+			}
+
+			if (std::cin.fail()) {
+				std::cin.clear();
+				std::cin.ignore();
+				std::cin >> x;
+			}
+		}
+
+		std::cout << "Enter the Y value" << std::endl;
+		std::cin >> y;
+		while (true) {
+			if (y <= maxY && y >= minY) {
+				break;
+			}
+
+			if (y > maxY || y < minY) {
+				std::cout << "ERROR: Y value out of range, max: " << maxY << std::endl;
+				std::cin >> y;
+			};
+
+			if (std::cin.fail()) {
+				std::cin.clear();
+				std::cin.ignore();
+				std::cin >> y;
+			}
+		}
+
+		coordCount += 1;
+		wchar_t format[200], coords[200];
+		swprintf_s(format, 200, L"Coords%i", GetCoordCount());
+		swprintf_s(coords, 100, L"%i,%i", x, y);
+		Reg.writeSubkeyString(L"Software\\AntiAFK\\MouseCoords", format, coords);
+		RefreshScr(L"Added mouse coordinates for Anti-AFK");
+	};
+
+	RefreshScr(L"");
+
+	auto function = [this, AddMouseCoords, RemoveMouseCoords, ListMouseCoords, GetInput, RefreshScr]() {
+		while (true) {
+			int input = 0;
+			if (input == 0) { // Get input when we need it
+				input = GetInput();
+			}
+
+			if (input == 1) { // The user wants to add a key to Anti-AFK
+				AddMouseCoords();
+				input = 0; // Reset the input so GetInput() is called again
+			}
+
+			if (input == 2) {
+				input = 0;
+				RemoveMouseCoords();
+			}
+
+			if (input == 3) {
+				ListMouseCoords();
+			}
+
+			if (input == 4) { // User wants to exit
+				system("cls");
+				break;
+			}
+		}
+	};
+
+	std::thread t1(function);
+	t1.join();
+	config Config;
+	Config.Configure();
 }

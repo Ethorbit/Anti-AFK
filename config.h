@@ -24,7 +24,7 @@ class config
 			return PressButtons;
 		}
 
-		std::vector<std::string> GetMouseCoords() {
+		std::vector<std::wstring> GetMouseCoords() {
 			return MouseCoords;
 		}
 
@@ -57,7 +57,7 @@ class config
 		DWORD AFKTime = 0;
 		DWORD SelectWindowKey = 0;
 		DWORD* PressButtons = nullptr;
-		std::vector<std::string>MouseCoords;
+		std::vector<std::wstring>MouseCoords;
 		int buttonCount, coordCount, BtnFreq = 0;
 };
 

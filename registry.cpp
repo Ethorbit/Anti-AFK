@@ -39,7 +39,7 @@ void registry::writeSubkey(const wchar_t* KeyName, const wchar_t* subKeyName, DW
 	HKEY regKey = openKey(KeyName);
 
 	// Create subkey:
-	LSTATUS writeKey = RegSetValueExW(regKey, &subKeyName[0], NULL, REG_DWORD, (LPBYTE)&Value, 100);
+	LSTATUS writeKey = RegSetValueExW(regKey, &subKeyName[0], NULL, REG_DWORD, (LPBYTE)&Value, sizeof(Value));
 	if (writeKey != ERROR_SUCCESS) {
 		winError err(L"Error while trying to write a value to the program's registry key");
 	}
@@ -47,12 +47,12 @@ void registry::writeSubkey(const wchar_t* KeyName, const wchar_t* subKeyName, DW
 	RegCloseKey(regKey);
 }
 
-void registry::writeSubkeyString(const wchar_t* KeyName, const char* subKeyName, const char* Value) {
+void registry::writeSubkeyString(const wchar_t* KeyName, const wchar_t* subKeyName, const wchar_t* Value) {
 	// Open the program's registry key:
 	HKEY regKey = openKey(KeyName);
 
 	// Create subkey:
-	LSTATUS writeKey = RegSetValueExA(regKey, subKeyName, NULL, REG_SZ, (LPBYTE)Value, 100);
+	LSTATUS writeKey = RegSetValueExW(regKey, subKeyName, NULL, REG_SZ, (LPBYTE)Value, 100);
 	if (writeKey != ERROR_SUCCESS) {
 		winError err(L"Error while trying to write a value to the program's registry key");
 	}
@@ -69,12 +69,32 @@ DWORD registry::getKey(const wchar_t* KeyName, const wchar_t* subKeyName) {
 	if (readKey != ERROR_SUCCESS) {
 		if (ERROR_FILE_NOT_FOUND) { // If the file isn't found then create with default value
 			writeSubkey(L"Software\\AntiAFK", subKeyName, 0);
+		}
+		else {
+			winError err(L"Error trying to read a registry key");
+		}
+
+	}
+
+	RegCloseKey(regKey);
+	return keyValue;
+}
+
+std::wstring registry::getKeyString(const wchar_t* KeyName, const wchar_t* subKeyName) {
+	DWORD keyValueSize = 200;
+	wchar_t keyValue[200];
+	HKEY regKey = openKey(KeyName);
+	LSTATUS readKey = RegQueryValueExW(regKey, subKeyName, NULL, NULL, (LPBYTE)&keyValue, &keyValueSize);
+
+	if (readKey != ERROR_SUCCESS) {
+		if (ERROR_FILE_NOT_FOUND) { // If the file isn't found then create with default value
+			writeSubkeyString(L"Software\\AntiAFK\\MouseCoords", subKeyName, L"0,0");
 		} else {
 			winError err(L"Error trying to read a registry key");
 		}
-		
+
 	}
-	
+
 	RegCloseKey(regKey);
 	return keyValue;
 }
@@ -94,6 +114,20 @@ void registry::renameSubKey(const wchar_t* valName, const wchar_t* newName, bool
 		delKey = RegDeleteKeyValueW(regKey, L"ButtonTimes", valName);
 		writeSubkey(L"Software\\AntiAFK\\ButtonTimes", newName, keyVal);
 	}
+
+	if (delKey != ERROR_SUCCESS) {
+		winError err(L"Error while trying to delete a registry subkey");
+	}
+
+	RegCloseKey(regKey);
+}
+
+void registry::renameSubKeyString(const wchar_t* valName, const wchar_t* newName) {
+	std::wstring keyVal = getKeyString(L"Software\\AntiAFK\\MouseCoords", valName);
+	std::wcout << "THE VALUE: " << keyVal << std::endl;
+	HKEY regKey = openKey(L"Software\\AntiAFK");
+	LSTATUS delKey = RegDeleteKeyValueW(regKey, L"MouseCoords", valName);
+	writeSubkeyString(L"Software\\AntiAFK\\MouseCoords", newName, &keyVal[0]);
 
 	if (delKey != ERROR_SUCCESS) {
 		winError err(L"Error while trying to delete a registry subkey");
@@ -132,12 +166,12 @@ DWORD* registry::getAllSubkeys(const wchar_t* KeyName) {
 	return AllValues;
 }
 
-std::vector<std::string> registry::getAllSubkeysString(const wchar_t* KeyName) {
-	std::vector<std::string> AllValues;
+std::vector<std::wstring> registry::getAllSubkeysString(const wchar_t* KeyName) {
+	std::vector<std::wstring> AllValues;
 	HKEY regKey = openKey(KeyName);
 
 	// Get the name of every subkey:
-	char subKeyValues[1048];
+	wchar_t subKeyValues[1048];
 	DWORD subKeyValueSize = 1048;
 	DWORD regType = REG_SZ;
 	DWORD index = 0;
@@ -147,7 +181,7 @@ std::vector<std::string> registry::getAllSubkeysString(const wchar_t* KeyName) {
 	for (int i = 0; i < 1048; i++) {
 		subKeyValueSize = 1048; // Resize every time or else memory errors will occur
 
-		if (RegEnumValueA(regKey, i, (LPSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)&subKeyValues, &subKeyValueSize) == ERROR_SUCCESS) {
+		if (RegEnumValueW(regKey, i, (LPWSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)&subKeyValues, &subKeyValueSize) == ERROR_SUCCESS) {
 			AllValues.push_back(subKeyValues); // It is unknown why the values are only written to index 0
 		}
 		else if (RegEnumValueW(regKey, i, (LPWSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)&subKeyValues, &subKeyValueSize) != ERROR_NO_MORE_ITEMS) {
@@ -173,6 +207,17 @@ void registry::removeButton(const wchar_t* ButtonName, bool button) {
 		delKey = RegDeleteKeyValueW(regKey, L"ButtonTimes", ButtonName);
 	}
 	
+	if (delKey != ERROR_SUCCESS) {
+		winError err(L"Error while trying to delete a registry subkey");
+	}
+
+	RegCloseKey(regKey);
+}
+
+void registry::removeCoords(const wchar_t* CoordName) {
+	HKEY regKey = openKey(L"Software\\AntiAFK");
+	LSTATUS delKey = RegDeleteKeyValueW(regKey, L"MouseCoords", CoordName);
+
 	if (delKey != ERROR_SUCCESS) {
 		winError err(L"Error while trying to delete a registry subkey");
 	}
