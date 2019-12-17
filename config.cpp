@@ -61,19 +61,6 @@ void config::Configure() {
 	}
 }
 
-//int config::inputButton() {
-//	int key = 0;
-//	while (key == 0) {
-//		for (int i = 0; i <= 256; i++) {
-//			if (GetAsyncKeyState(i) && i > 4 && i != 13) { // 1-4 is for mouse buttons, 13 is for Enter
-//				key = i;
-//			}
-//		}
-//	}
-//
-//	return key;
-//}
-
 void config::UpdateButtons() {
 	PressButtons = Reg.getAllSubkeys(L"Software\\AntiAFK\\Buttons");
 	buttonCount = 0;
@@ -90,12 +77,21 @@ void config::UpdateCoords() {
 	MouseCoords = Reg.getAllSubkeysString(L"Software\\AntiAFK\\MouseCoords");
 	coordCount = 0;
 
+	// Save coordinate amount:
 	for (int i = 0; i < 100; i++) {
 		if (i < MouseCoords.size()) {
 			if (MouseCoords[i].length() > 0) {	
 				coordCount++;
 			}
 		}
+	}
+
+	// Translate coordinates from strings to proper integers:
+	for (int i = 0; i < coordCount; i++) {
+		std::wstring Y = MouseCoords[i].substr(MouseCoords[i].rfind(L",") + 1, MouseCoords[i].length());
+		std::wstring X = MouseCoords[i].substr(0, MouseCoords[i].rfind(L","));
+		mouseX[i] = stoi(X);
+		mouseY[i] = stoi(Y);
 	}
 }
 
@@ -208,8 +204,8 @@ void config::SetAntiAFKButtons() {
 		if (GetButtonCount() == 0) {
 			RefreshScr(L"There are no keys to remove.");
 		} else {
+			std::cout << "Type back to cancel" << std::endl;
 			ListButtons();
-
 			std::cout << "Enter the number of the button you want to remove" << std::endl;
 			std::cin >> remove;
 			removeInt = atoi(remove);
@@ -404,9 +400,10 @@ void config::SetAntiAFKMouseCoords() {
 	auto RemoveMouseCoords = [this, RefreshScr, ListMouseCoords]() {
 		char remove[100];
 		int removeInt = -1;
-		if (GetButtonCount() == 0) {
+		if (coordCount == 0) {
 			RefreshScr(L"There are no coordinates to remove.");
 		} else {
+			std::cout << "Type back to cancel" << std::endl;
 			ListMouseCoords();
 			std::cout << "Enter the number of the mouse coords you want to remove" << std::endl;
 			std::cin >> remove;

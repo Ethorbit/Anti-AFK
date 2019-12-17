@@ -37,8 +37,10 @@ afkFind::afkFind(int afkSeconds) {
 	};
 
 	auto buttonPresser = [this, &Config, &Reg]() {
+		int oldCursorX, oldCursorY = 0;
+		INPUT input;
+		POINT point;
 		HWND PrevWnd = NULL;
-
 		DWORD SavedButtons[100] {0};
 		DWORD SavedButtonTimes[100] {0};
 		DWORD* Buttons = Reg.getAllSubkeys(L"Software\\AntiAFK\\Buttons");
@@ -47,33 +49,51 @@ afkFind::afkFind(int afkSeconds) {
 		}
 		DWORD* ButtonTimes = Reg.getAllSubkeys(L"Software\\AntiAFK\\ButtonTimes");
 
-		// Randomize value from saved buttons array:
+		// Randomize values from saved buttons/mousecoord arrays:
 		int RandKey = std::rand() % Config.GetButtonCount();
+		int RandCoord = std::rand() % Config.GetCoordCount();
 
-		// Randomize seed for randomized array value:
+		// Randomize seed for randomized arrays:
 		auto randomizeKey = [&RandKey, &Config]() {
 			SYSTEMTIME time;
 			GetLocalTime(&time);
 			srand(time.wSecond);
-			RandKey = std::rand() % Config.GetButtonCount();
 		};
 
-		auto holdButton = [&SavedButtons, &ButtonTimes, &RandKey, &randomizeKey, &Config, &PrevWnd]() {
+		auto holdButton = [&SavedButtons, &ButtonTimes, &RandKey, &RandCoord, &randomizeKey, &Config, &PrevWnd, &input, &oldCursorX, &oldCursorY]() {
+			// Move the mouse:
+			if (Config.GetCoordCount() > 0) {
+				randomizeKey();
+				RandCoord = std::rand() % Config.GetCoordCount();
+				std::cout << "Random mouse index value: " << RandCoord << std::endl;
+				input.type = INPUT_MOUSE;
+				input.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
+				input.mi.mouseData = 0;
+				input.mi.dx = Config.GetXCoords()[RandCoord];
+				input.mi.dy = Config.GetYCoords()[RandCoord];
+				HAutoMouse = true; // Don't become active if the mouse is auto moved
+				SendInput(1, &input, sizeof(input));
+				HAutoMouse = false;
+			}
+			
 			// Hold button time:
 			auto holdTime = std::chrono::system_clock::now() + std::chrono::seconds(ButtonTimes[RandKey]);
 
-			auto parseButton = [&randomizeKey, &RandKey, &Config, &SavedButtons]() {
-				// Make sure the keys are in random order every time:
-				randomizeKey();
-				RandKey = std::rand() % Config.GetButtonCount();
+			// Make sure the keys are in random order every time:
+			randomizeKey();
+			RandKey = std::rand() % Config.GetButtonCount();
 
+			auto parseButton = [&randomizeKey, &RandKey, &RandCoord, &Config, &SavedButtons, &PrevWnd, &input, &oldCursorX, &oldCursorY]() {
 				// Send random buttons to target window:
-				INPUT input;
 				input.type = INPUT_KEYBOARD;
 				input.ki.dwFlags = 0; //KEYEVENTF_UNICODE
 				input.ki.wScan = MapVirtualKeyW(SavedButtons[RandKey], MAPVK_VK_TO_VSC); // Scan code required or DirectX games will not process keys
 				input.ki.wVk = SavedButtons[RandKey];
-				HAutoWindow = true;
+				
+				if (PrevWnd != NULL) {
+					HAutoWindow = true;
+				}
+
 				SetForegroundWindow(HAntiAFKWindow); // Set the window to the selected one real quick for SendInput to work
 				HAutoPress = true; // Don't let the keyboard hook think this is a key the user pressed manually
 				SendInput(1, &input, sizeof(input));
@@ -89,10 +109,17 @@ afkFind::afkFind(int afkSeconds) {
 				parseButton();			
 			}
 
-			if (PrevWnd != NULL) { // Set the window back to what it was before
+			// Let go of the key:
+			input.ki.dwFlags = KEYEVENTF_KEYUP;
+			HAutoPress = true;
+			SendInput(1, &input, sizeof(input));
+			HAutoPress = false;
+
+			if (PrevWnd != NULL) { // Set the window and cursor back to what they were before
 				SetForegroundWindow(PrevWnd);
+				SetCursorPos(oldCursorX, oldCursorY);
 				HAutoWindow = false;
-			}
+			} 
 		};
 
 		while (true) {
@@ -102,11 +129,14 @@ afkFind::afkFind(int afkSeconds) {
 				if (isAFK == true) {
 					if (GetForegroundWindow() != HAntiAFKWindow) {
 						PrevWnd = GetForegroundWindow();
+						GetCursorPos(&point);
+						oldCursorX = point.x;
+						oldCursorY = point.y;
 					}
 						
 					// Bypass waiting for button frequency by running in other threads:
 					std::thread t1(holdButton); 
-					
+
 					// Button frequency:
 					auto endTime = std::chrono::system_clock::now() + std::chrono::seconds(Config.GetButtonFrequency());
 					while (std::chrono::system_clock::now() < endTime) {}

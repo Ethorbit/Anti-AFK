@@ -49,6 +49,14 @@ class config
 		int GetButtonFrequency() {
 			return BtnFreq;
 		}
+
+		int* GetXCoords() {
+			return mouseX;
+		}
+
+		int* GetYCoords() {
+			return mouseY;
+		}
 	private:
 		void UpdateButtons();
 		void UpdateCoords();
@@ -59,5 +67,6 @@ class config
 		DWORD* PressButtons = nullptr;
 		std::vector<std::wstring>MouseCoords;
 		int buttonCount, coordCount, BtnFreq = 0;
+		int mouseX[100], mouseY[100] {-1};
 };
 

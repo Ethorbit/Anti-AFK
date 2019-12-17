@@ -4,6 +4,6 @@
 
 //HWND curWin = NULL;
 extern HWND HAntiAFKWindow;
-extern bool HExit, HActive, HCheckAFK, HConfigure, HAutoPress, HAutoWindow;
+extern bool HExit, HActive, HAutoMouse, HCheckAFK, HConfigure, HAutoPress, HAutoWindow;
 extern int HCurButton;
 extern std::string HCommand;
