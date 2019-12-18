@@ -7,12 +7,16 @@ class config
 {
 	public:
 		config();
-		void SetAFKTime();
+		int SetAFKTime();
 		int SetWindowKey();
-		//void SetAntiAFKButtons();
 		int GetButtonOption();
 		const wchar_t* AddButton();
 		void SetButtonTime(const wchar_t* buttonTimeFormat);
+		bool RemoveButton();
+		int GetXCoordinate();
+		int GetYCoordinate();
+		void AddMouseCoordinates(int x, int y);
+		bool RemoveCoordinates();
 
 		DWORD GetWindowKey() {
 			return SelectWindowKey;
@@ -60,9 +64,7 @@ class config
 			return mouseY;
 		}
 
-		void SetAntiAFKMouseCoords();
-		void SetButtonFrequency();
-
+		int SetButtonFrequency();
 	private:
 		void UpdateButtons();
 		void UpdateCoords();	

@@ -41,12 +41,6 @@ void start::startStuff() {
 	std::thread t1(WaitForSelection);
 
 	while (true) {
-		if (HCommand == "config") {
-			Exit = true; // Stop infinite loops before continuing
-			Config.Configure();
-			break;
-		}
-
 		if (doWin == true) {
 			Exit = true; 
 			system("cls");
