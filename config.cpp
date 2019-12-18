@@ -17,48 +17,17 @@ config::config() {
 	UpdateCoords();
 }
 
-void config::Configure() {
+int config::Configure() {
 	HConfigure = true;
-	std::cout << "Press 1 to set the Select Window button\n";
-	std::cout << "Press 2 to modify the buttons that Anti-AFK presses when AFK\n";
-	std::cout << "Press 3 to modify the mouse coordinates for Anti-AFK to move your mouse to when AFK\n";
-	std::cout << "Press 4 to set the amount of seconds to be AFK\n";
-	std::cout << "Press 5 to set the frequency (in seconds) that Anti-AFK should apply activity when AFK\n";
-	std::cout << "Press 6 to cancel\n";
 
-	int input = 0;
-	Sleep(200); // Delay required or else the first letter of the input is not visible.
+	char input[100];
 	std::cin >> input;
-	while (input < 1 || input > 6) {
+	while (atoi(input) < 1 || atoi(input) > 6) 
+	{
 		std::cin >> input;
-
-		if (std::cin.fail()) { // If the user enters something like a letter instead
-			input = 0;
-			std::cin.clear();
-			std::cin.ignore();
-		}
 	}
 
-	switch (input) { 
-		case 1: 
-			SetWindowKey();
-			return;
-		case 2:
-			SetAntiAFKButtons();
-			return;
-		case 3:
-			SetAntiAFKMouseCoords();
-			return;
-		case 4:
-			SetAFKTime();
-			return;
-		case 5:
-			SetButtonFrequency();
-			return;
-		case 6:
-			start Start;
-			Start.startStuff();
-	}
+	return atoi(input);
 }
 
 void config::UpdateButtons() {
@@ -66,8 +35,10 @@ void config::UpdateButtons() {
 	buttonCount = 0;
 	
 	// Get button amount (Max allowed is 100):
-	for (int i = 0; i < 100; i++) {
-		if (PressButtons[i] > 0) {
+	for (int i = 0; i < 100; i++) 
+	{
+		if (i < PressButtons.size()) 
+		{
 			buttonCount++;
 		}
 	}
@@ -93,6 +64,18 @@ void config::UpdateCoords() {
 		mouseX[i] = stoi(X);
 		mouseY[i] = stoi(Y);
 	}
+}
+
+int config::SetWindowKey() {
+	HCurButton = 0;
+	while (HCurButton == 0) 
+	{
+		Sleep(50); // Delay or else button is never able to get set
+	}
+
+	Reg.writeSubkey(L"Software\\AntiAFK", L"SelectWindowKey", HCurButton);
+	SetWindowKey(Reg.getKey(L"Software\\AntiAFK", L"SelectWindowKey"));
+	return HCurButton;
 }
 
 void config::SetAFKTime() {
@@ -149,204 +132,238 @@ void config::SetButtonFrequency() {
 	Config.Configure();
 }
 
-void config::SetWindowKey() {
-	std::cout << "What button should be used to select the current window for Anti-AFK to use?" << std::endl;
-
-	auto function = [this]() {
-		bool exit = false;
-		HCurButton = 0;
-		while (HCurButton == 0) {}
-		system("cls");
-		std::wcout << "Set select window key to " << Button.GetName(HCurButton) << std::endl;
-		Reg.writeSubkey(L"Software\\AntiAFK", L"SelectWindowKey", HCurButton);
-		SetWindowKey(Reg.getKey(L"Software\\AntiAFK", L"SelectWindowKey"));
-		Sleep(500);
-	};
-
-	std::thread t2(function);
-	t2.join();
-	config Config;
-	Config.Configure();
+int config::GetButtonOption() 
+{
+	char option[100] = "";
+	while (atoi(option) < 1 || atoi(option) > 4)
+	{
+		std::cin >> option;
+	}
+	return atoi(option);
 }
 
-void config::SetAntiAFKButtons() {
-	auto RefreshScr = [](std::wstring newMsg) {
-		system("cls");
-		std::cout << "Press 1 to add a button \n";
-		std::cout << "Press 2 to remove a button \n";
-		std::cout << "Press 3 to list buttons added \n";
-		std::cout << "Press 4 to finish \n";
+const wchar_t* config::AddButton()
+{
+	HCurButton = 0;
+	while (HCurButton == 0) 
+	{
+		Sleep(50);
+	}
 
-		if (newMsg.length() > 0) {
-			std::wcout << newMsg << std::endl;
-		}
-	};
+	int btnVal = HCurButton;
+	buttonCount += 1;
+	wchar_t buttonFormat[400] = L"";
+	wchar_t buttonTimeFormat[400] = L"";
+	swprintf_s(buttonFormat, sizeof(buttonFormat) / sizeof(wchar_t), L"Button%i", buttonCount);
+	swprintf_s(buttonTimeFormat, sizeof(buttonTimeFormat) / sizeof(wchar_t), L"Button%iTime", buttonCount);
+	Reg.writeSubkey(L"Software\\AntiAFK\\Buttons", buttonFormat, btnVal);
+	Reg.writeSubkey(L"Software\\AntiAFK\\ButtonTimes", buttonTimeFormat, 0); // Save as 0 seconds incase the next part never finishes
+	return buttonTimeFormat;
+}
 
-	RefreshScr(L"");
+void config::SetButtonTime(const wchar_t* buttonTimeFormat)
+{
+	DWORD holdTime = 0;
 
-	auto ListButtons = [this, RefreshScr]() {
-		if (GetButtonCount() == 0) {
-			RefreshScr(L"You have not added any buttons yet.");
-		}
-
-		DWORD* Buttons = Reg.getAllSubkeys(L"Software\\AntiAFK\\Buttons");
-
-		// Print the name of every button the user added:
-		for (int i = 0; i < GetButtonCount(); i++) {
-			std::cout << i;
-			std::wcout << ": " << Button.GetName(Buttons[i]) << " (" << Buttons[i] << ")" << std::endl; 
-		}
-	};
-
-	auto RemoveButton = [this, RefreshScr, ListButtons]() {
-		char remove[100];
-		int removeInt = -1;
-		if (GetButtonCount() == 0) {
-			RefreshScr(L"There are no keys to remove.");
-		} else {
-			std::cout << "Type back to cancel" << std::endl;
-			ListButtons();
-			std::cout << "Enter the number of the button you want to remove" << std::endl;
-			std::cin >> remove;
-			removeInt = atoi(remove);
-
-			while (removeInt == 0 && strcmp(remove, "back") != 0 && strcmp(remove, "0") != 0 || removeInt < 0 || removeInt > GetButtonCount()) {
-				std::cout << strlen(remove) << std::endl;
-				ListButtons();
-				std::cin >> remove;
-				removeInt = atoi(remove);
-			}
-
-			while (strcmp(remove, "back") == 0) {
-				RefreshScr(L"");
-				return;
-			}
-
-			wchar_t subKeyName[200];
-			swprintf_s(subKeyName, 200, L"Button%i", removeInt + 1);
-			this->SetButtonCount(this->GetButtonCount() - 1);
-
-			for (int i = 0; i <= this->GetButtonCount(); i++) {
-				wchar_t valName[200], newName[200], valName2[200],newName2[200];
-				if (i > removeInt) {
-					swprintf_s(valName, 200, L"Button%i", i + 1);
-					swprintf_s(valName2, 200, L"Button%iTime", i + 1);
-					if (i + 1 != 1) { // Don't replace anything if it's the first button
-						swprintf_s(newName, 200, L"Button%i", i);
-						swprintf_s(newName2, 200, L"Button%iTime", i);
-						Reg.renameSubKey(valName, newName, true);
-						Reg.renameSubKey(valName2, newName2, false);
-					} 
-				} else if (i == removeInt) {
-					swprintf_s(valName, 200, L"Button%i", i + 1);
-					swprintf_s(valName2, 200, L"Button%iTime", i + 1);
-					Reg.removeButton(valName, true); 
-					Reg.removeButton(valName2, false);
-				}
-			}
-
-			std::cout << "Removed button from Anti-AFK" << std::endl;
-		}
-	};
-
-	auto GetInput = [RefreshScr]() {
-		int input = 0;
-		std::cin >> input;
-		while (input < 0 || input > 4) {
-			input = 0;
-			RefreshScr(L"");
-		}
-
-		while (input < 0 || input > 4) { 
-			std::cin >> input;
-		}
-
-		if (std::cin.fail()) {
+	while (true) 
+	{
+		std::cin >> holdTime;
+		if (std::cin.fail()) 
+		{
 			std::cin.clear();
-			std::cin.ignore();
-			RefreshScr(L"Enter a valid number");
-			input = 0;
-		}
-
-		return input;
-	};
-
-	auto AddButton = [this, RefreshScr](int button) {
-		SetButtonCount(GetButtonCount() + 1);
-		system("cls");
-		std::cout << "Press 1 to add a button \n";
-		std::cout << "Press 2 to remove a button \n";
-		std::cout << "Press 3 to list buttons added \n";
-		std::cout << "Press 4 to finish \n";
-		wchar_t buttonFormat[400];
-		wchar_t buttonTimeFormat[400];
-		swprintf_s(buttonFormat, sizeof(buttonFormat) / sizeof(wchar_t), L"Button%i", GetButtonCount());
-		swprintf_s(buttonTimeFormat, sizeof(buttonTimeFormat) / sizeof(wchar_t), L"Button%iTime", GetButtonCount());
-		Reg.writeSubkey(L"Software\\AntiAFK\\Buttons", buttonFormat, button);
-		Reg.writeSubkey(L"Software\\AntiAFK\\ButtonTimes", buttonTimeFormat, 0); // Save as 0 seconds incase the next part never finishes
-
-		DWORD holdTime = 0;
-		std::wcout << "How many seconds should " << Button.GetName(button) << " be held for? (Max is: " << GetAFKTime() << ")" << std::endl;
-	
-		while (true) {
-			std::cin >> holdTime;
-			if (std::cin.fail()) {
-				std::cin.clear();
-				std::cin.ignore();
-				std::cout << "Enter a valid amount of seconds:" << std::endl;		
-			} else {
-				if (holdTime > GetAFKTime()) {
-					std::cout << "The button cannot be held longer than the AFK time (" << GetAFKTime() << ")" << std::endl;
-				} else {
-					break;
-				}
+			std::cin.ignore();	
+		} else {
+			if (holdTime > GetAFKTime()) 
+			{
+				std::cout << "The button cannot be held longer than the AFK time (" << GetAFKTime() << ")" << std::endl;
+			} else 
+			{
+				break;
 			}
 		}
+	}
 
-		Reg.writeSubkey(L"Software\\AntiAFK\\ButtonTimes", buttonTimeFormat, holdTime);
-		std::wcout << "Adding " << Button.GetName(button) << " to Anti-AFK. Total buttons added: " << GetButtonCount() << std::endl;
-	};
-
-	auto function = [this, AddButton, RemoveButton, GetInput, RefreshScr, ListButtons]() {
-		while (true) {
-			int input = 0;	
-			if (input == 0) { // Get input when we need it
-				input = GetInput();
-			}
-			
-			if (input == 1) { // The user wants to add a key to Anti-AFK
-				std::cout << "Press a key" << std::endl;
-				Sleep(200); // Wait 200ms to stop GetAsyncKey from getting the key the user just pressed to add keys
-				input = 0; // Reset the input so GetInput() is called again
-				HCurButton = 0;
-				while (HCurButton == 0) {}
-				AddButton(HCurButton);
-			}
-
-			if (input == 2) { 
-				input = 0;
-				RemoveButton();
-			}
-
-			if (input == 3) { 
-				ListButtons();
-			}
-
-			if (input == 4) { // User wants to exit
-				if (GetButtonCount() == 0) {
-					RefreshScr(L"You must add at least 1 key for Anti-AFK");
-				} else {
-					break; 
-				}
-			}
-		}	
-	};
-
-	std::thread t1(function);
-	t1.join();
-	config Config;
-	Config.Configure();
+	Reg.writeSubkey(L"Software\\AntiAFK\\ButtonTimes", buttonTimeFormat, holdTime);
 }
+
+//void config::SetAntiAFKButtons() {
+//	//auto RefreshScr = [](std::wstring newMsg) {
+//	//	//system("cls");
+//	//	//std::cout << "Press 1 to add a button \n";
+//	//	//std::cout << "Press 2 to remove a button \n";
+//	//	//std::cout << "Press 3 to list buttons added \n";
+//	//	//std::cout << "Press 4 to finish \n";
+//
+//	//	if (newMsg.length() > 0) {
+//	//		std::wcout << newMsg << std::endl;
+//	//	}
+//	//};
+//
+//	//RefreshScr(L"");
+//
+//	auto ListButtons = [this, RefreshScr]() {
+//		if (GetButtonCount() == 0) {
+//			RefreshScr(L"You have not added any buttons yet.");
+//		}
+//
+//		DWORD* Buttons = Reg.getAllSubkeys(L"Software\\AntiAFK\\Buttons");
+//
+//		// Print the name of every button the user added:
+//		for (int i = 0; i < GetButtonCount(); i++) {
+//			std::cout << i;
+//			std::wcout << ": " << Button.GetName(Buttons[i]) << " (" << Buttons[i] << ")" << std::endl; 
+//		}
+//	};
+//
+//	auto RemoveButton = [this, RefreshScr, ListButtons]() {
+//		char remove[100] = "";
+//		int removeInt = -1;
+//		if (GetButtonCount() == 0) {
+//			RefreshScr(L"There are no keys to remove.");
+//		} else {
+//			std::cout << "Type back to cancel" << std::endl;
+//			ListButtons();
+//			std::cout << "Enter the number of the button you want to remove" << std::endl;
+//			std::cin >> remove;
+//			removeInt = atoi(remove);
+//
+//			while (removeInt == 0 && strcmp(remove, "back") != 0 && strcmp(remove, "0") != 0 || removeInt < 0 || removeInt > GetButtonCount()) {
+//				std::cout << strlen(remove) << std::endl;
+//				ListButtons();
+//				std::cin >> remove;
+//				removeInt = atoi(remove);
+//			}
+//
+//			while (strcmp(remove, "back") == 0) {
+//				RefreshScr(L"");
+//				return;
+//			}
+//
+//			wchar_t subKeyName[200] = L"";
+//			swprintf_s(subKeyName, 200, L"Button%i", removeInt + 1);
+//			this->SetButtonCount(this->GetButtonCount() - 1);
+//
+//			for (int i = 0; i <= this->GetButtonCount(); i++) {
+//				wchar_t valName[200] = L"", newName[200] = L"", valName2[200] = L"",newName2[200] = L"";
+//				if (i > removeInt) {
+//					swprintf_s(valName, 200, L"Button%i", i + 1);
+//					swprintf_s(valName2, 200, L"Button%iTime", i + 1);
+//					if (i + 1 != 1) { // Don't replace anything if it's the first button
+//						swprintf_s(newName, 200, L"Button%i", i);
+//						swprintf_s(newName2, 200, L"Button%iTime", i);
+//						Reg.renameSubKey(valName, newName, true);
+//						Reg.renameSubKey(valName2, newName2, false);
+//					} 
+//				} else if (i == removeInt) {
+//					swprintf_s(valName, 200, L"Button%i", i + 1);
+//					swprintf_s(valName2, 200, L"Button%iTime", i + 1);
+//					Reg.removeButton(valName, true); 
+//					Reg.removeButton(valName2, false);
+//				}
+//			}
+//
+//			std::cout << "Removed button from Anti-AFK" << std::endl;
+//		}
+//	};
+//
+//	auto GetInput = [RefreshScr]() {
+//		int input = 0;
+//		std::cin >> input;
+//		while (input < 0 || input > 4) {
+//			input = 0;
+//			RefreshScr(L"");
+//		}
+//
+//		while (input < 0 || input > 4) { 
+//			std::cin >> input;
+//		}
+//
+//		if (std::cin.fail()) {
+//			std::cin.clear();
+//			std::cin.ignore();
+//			RefreshScr(L"Enter a valid number");
+//			input = 0;
+//		}
+//
+//		return input;
+//	};
+//
+//	auto AddButton = [this, RefreshScr](int button) {
+//		SetButtonCount(GetButtonCount() + 1);
+//		system("cls");
+//		std::cout << "Press 1 to add a button \n";
+//		std::cout << "Press 2 to remove a button \n";
+//		std::cout << "Press 3 to list buttons added \n";
+//		std::cout << "Press 4 to finish \n";
+//		wchar_t buttonFormat[400] = L"";
+//		wchar_t buttonTimeFormat[400] = L"";
+//		swprintf_s(buttonFormat, sizeof(buttonFormat) / sizeof(wchar_t), L"Button%i", GetButtonCount());
+//		swprintf_s(buttonTimeFormat, sizeof(buttonTimeFormat) / sizeof(wchar_t), L"Button%iTime", GetButtonCount());
+//		Reg.writeSubkey(L"Software\\AntiAFK\\Buttons", buttonFormat, button);
+//		Reg.writeSubkey(L"Software\\AntiAFK\\ButtonTimes", buttonTimeFormat, 0); // Save as 0 seconds incase the next part never finishes
+//
+//		DWORD holdTime = 0;
+//		std::wcout << "How many seconds should " << Button.GetName(button) << " be held for? (Max is: " << GetAFKTime() << ")" << std::endl;
+//	
+//		while (true) {
+//			std::cin >> holdTime;
+//			if (std::cin.fail()) {
+//				std::cin.clear();
+//				std::cin.ignore();
+//				std::cout << "Enter a valid amount of seconds:" << std::endl;		
+//			} else {
+//				if (holdTime > GetAFKTime()) {
+//					std::cout << "The button cannot be held longer than the AFK time (" << GetAFKTime() << ")" << std::endl;
+//				} else {
+//					break;
+//				}
+//			}
+//		}
+//
+//		Reg.writeSubkey(L"Software\\AntiAFK\\ButtonTimes", buttonTimeFormat, holdTime);
+//		std::wcout << "Adding " << Button.GetName(button) << " to Anti-AFK. Total buttons added: " << GetButtonCount() << std::endl;
+//	};
+//
+//	auto function = [this, AddButton, RemoveButton, GetInput, RefreshScr, ListButtons]() {
+//		while (true) {
+//			int input = 0;	
+//			if (input == 0) { // Get input when we need it
+//				input = GetInput();
+//			}
+//			
+//			if (input == 1) { // The user wants to add a key to Anti-AFK
+//				std::cout << "Press a key" << std::endl;
+//				Sleep(200); // Wait 200ms to stop GetAsyncKey from getting the key the user just pressed to add keys
+//				input = 0; // Reset the input so GetInput() is called again
+//				HCurButton = 0;
+//				while (HCurButton == 0) {}
+//				AddButton(HCurButton);
+//			}
+//
+//			if (input == 2) { 
+//				input = 0;
+//				RemoveButton();
+//			}
+//
+//			if (input == 3) { 
+//				ListButtons();
+//			}
+//
+//			if (input == 4) { // User wants to exit
+//				if (GetButtonCount() == 0) {
+//					RefreshScr(L"You must add at least 1 key for Anti-AFK");
+//				} else {
+//					break; 
+//				}
+//			}
+//		}	
+//	};
+//
+//	std::thread t1(function);
+//	t1.join();
+//	config Config;
+//	Config.Configure();
+//}
 
 void config::SetAntiAFKMouseCoords() {
 	auto RefreshScr = [](std::wstring newMsg) {
@@ -398,7 +415,7 @@ void config::SetAntiAFKMouseCoords() {
 	};
 
 	auto RemoveMouseCoords = [this, RefreshScr, ListMouseCoords]() {
-		char remove[100];
+		char remove[100] = "";
 		int removeInt = -1;
 		if (coordCount == 0) {
 			RefreshScr(L"There are no coordinates to remove.");
@@ -420,11 +437,11 @@ void config::SetAntiAFKMouseCoords() {
 				return;
 			}
 
-			wchar_t subKeyName[200];
+			wchar_t subKeyName[200] = L"";
 			swprintf_s(subKeyName, 200, L"Coords%i", removeInt + 1);
 			coordCount -= 1;
 			for (int i = 0; i <= coordCount; i++) {
-				wchar_t valName[200], newName[200];
+				wchar_t valName[200] = L"", newName[200] = L"";
 				if (i > removeInt) {
 					swprintf_s(valName, 200, L"Coords%i", i + 1);
 					if (i + 1 != 1) { // Don't replace anything if it's the first coords
@@ -485,7 +502,7 @@ void config::SetAntiAFKMouseCoords() {
 		}
 
 		coordCount += 1;
-		wchar_t format[200], coords[200];
+		wchar_t format[200] = L"", coords[200] = L"";
 		swprintf_s(format, 200, L"Coords%i", GetCoordCount());
 		swprintf_s(coords, 100, L"%i,%i", x, y);
 		Reg.writeSubkeyString(L"Software\\AntiAFK\\MouseCoords", format, coords);

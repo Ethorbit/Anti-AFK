@@ -8,9 +8,11 @@ class config
 	public:
 		config();
 		void SetAFKTime();
-		void SetWindowKey();
-		void SetAntiAFKButtons();
-		int inputButton();
+		int SetWindowKey();
+		//void SetAntiAFKButtons();
+		int GetButtonOption();
+		const wchar_t* AddButton();
+		void SetButtonTime(const wchar_t* buttonTimeFormat);
 
 		DWORD GetWindowKey() {
 			return SelectWindowKey;
@@ -20,7 +22,7 @@ class config
 			return AFKTime;
 		}
 
-		DWORD* GetButtons() {
+		std::vector<DWORD> GetButtons() {
 			return PressButtons;
 		}
 
@@ -40,7 +42,7 @@ class config
 			buttonCount = count;
 		}
 
-		void Configure();
+		int Configure();
 
 		void SetWindowKey(DWORD key) {
 			SelectWindowKey = key;
@@ -57,14 +59,16 @@ class config
 		int* GetYCoords() {
 			return mouseY;
 		}
+
+		void SetAntiAFKMouseCoords();
+		void SetButtonFrequency();
+
 	private:
 		void UpdateButtons();
-		void UpdateCoords();
-		void SetButtonFrequency();
-		void SetAntiAFKMouseCoords();
+		void UpdateCoords();	
 		DWORD AFKTime = 0;
 		DWORD SelectWindowKey = 0;
-		DWORD* PressButtons = nullptr;
+		std::vector<DWORD> PressButtons;
 		std::vector<std::wstring>MouseCoords;
 		int buttonCount, coordCount, BtnFreq = 0;
 		int mouseX[100], mouseY[100] {-1};
