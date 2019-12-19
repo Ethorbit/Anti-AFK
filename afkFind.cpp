@@ -5,6 +5,7 @@
 #include "start.h"
 #include "config.h"
 #include "registry.h"
+#include "button.h"
 #include "Anti-AFK.h"
 
 afkFind::afkFind(int afkSeconds) {
@@ -180,6 +181,7 @@ afkFind::afkFind(int afkSeconds) {
 	t2.join();
 	t3.join();
 	system("cls");
-	start Start;
-	Start.startStuff();
+	button Button;
+	std::cout << "Type config to configure the program" << std::endl;
+	std::wcout << "Press " << Button.GetName(Config.GetWindowKey()) << " to activate Anti-AFK for the current window" << std::endl;
 }
