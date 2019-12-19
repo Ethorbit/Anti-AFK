@@ -1,5 +1,5 @@
 # Anti-AFK is almost complete
-More functionality is currently being added
+Functionality is finished but compatibility with other systems is being tested
 
 # Anti-AFK
 A configurable program that can execute buttons and move your mouse when you are inactive to trick AFK punishing systems into thinking that you are active when you actually aren't. 
