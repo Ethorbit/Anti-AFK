@@ -11,7 +11,7 @@ While there is no guarantee that Anti-AFK is Anti-Cheat proof, it is guaranteed 
 * The interval to apply activity at when deemed as AFK
 * The buttons Anti-AFK will press
 * How long Anti-AFK will hold the buttons
-* Mouse coordinates to move the mouse to (For direct X game input only, higher value is further from the crosshair) 
+* Mouse coordinates to move the mouse to (For direct X game input only, higher value is further from the center) 
 
 
 # Download the executable:
