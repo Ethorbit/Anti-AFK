@@ -245,11 +245,11 @@ int main()
 						}
 					};
 
-					auto ListMouseCoords = [RefreshScr]() {
+					auto ListMouseCoords = [RefreshScr2]() {
 						config Config;
 						registry Reg;
 						if (Config.GetCoordCount() == 0) {
-							RefreshScr("You have not added any mouse coordinates yet.");
+							RefreshScr2(L"You have not added any mouse coordinates yet.");
 						}
 					
 						std::vector<std::wstring> Coords = Reg.getAllSubkeysString(L"Software\\AntiAFK\\MouseCoords");
