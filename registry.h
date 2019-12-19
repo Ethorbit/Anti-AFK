@@ -16,7 +16,7 @@ class registry
 		void removeCoords(const wchar_t* CoordName);
 		DWORD getKey(const wchar_t* KeyName, const wchar_t* subKeyName);
 		std::wstring getKeyString(const wchar_t* KeyName, const wchar_t* subKeyName);
-		DWORD* getAllSubkeys(const wchar_t*);
+		std::vector<DWORD> getAllSubkeys(const wchar_t*);
 		std::vector<std::wstring> getAllSubkeysString(const wchar_t* KeyName);
 	private:
 		HKEY openKey(const wchar_t* KeyName);

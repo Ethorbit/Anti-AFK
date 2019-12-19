@@ -9,7 +9,8 @@
 #include "config.h"
 #include "Anti-AFK.h"
 
-start::start() {
+start::start()
+:CurBtn(0) {
 }
 
 void start::startStuff() {
@@ -38,17 +39,10 @@ void start::startStuff() {
 	};
 
 	std::thread t1(WaitForSelection);
-	
-	while (true) {
-		if (HCommand == "config" && HCurButton == VK_RETURN) {
-			std::cout << std::endl;
-			Exit = true; // Stop infinite loops before continuing
-			Config.Configure();
-			break;
-		}
 
+	while (true) {
 		if (doWin == true) {
-			Exit = true; // Stop infinite loops before continuing
+			Exit = true; 
 			system("cls");
 			CurrentWindow curWin;
 			HAntiAFKWindow = curWin.GetCurrentWindow(); // Let the keyboard hook know what the selected window is

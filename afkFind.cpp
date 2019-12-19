@@ -5,6 +5,7 @@
 #include "start.h"
 #include "config.h"
 #include "registry.h"
+#include "button.h"
 #include "Anti-AFK.h"
 
 afkFind::afkFind(int afkSeconds) {
@@ -43,11 +44,13 @@ afkFind::afkFind(int afkSeconds) {
 		HWND PrevWnd = NULL;
 		DWORD SavedButtons[100] {0};
 		DWORD SavedButtonTimes[100] {0};
-		DWORD* Buttons = Reg.getAllSubkeys(L"Software\\AntiAFK\\Buttons");
-		for (int i = 0; i < Config.GetButtonCount(); i++) { // The memory address for the Buttons array gets replaced, so copy the array
+
+		std::vector<DWORD> Buttons = Reg.getAllSubkeys(L"Software\\AntiAFK\\Buttons");
+		std::vector<DWORD> ButtonTimes = Reg.getAllSubkeys(L"Software\\AntiAFK\\ButtonTimes");
+
+		for (int i = 0; i < Config.GetButtonCount(); i++) {
 			SavedButtons[i] = Buttons[i];
 		}
-		DWORD* ButtonTimes = Reg.getAllSubkeys(L"Software\\AntiAFK\\ButtonTimes");
 
 		// Randomize values from saved buttons/mousecoord arrays:
 		int RandKey = std::rand() % Config.GetButtonCount();
@@ -178,6 +181,7 @@ afkFind::afkFind(int afkSeconds) {
 	t2.join();
 	t3.join();
 	system("cls");
-	start Start;
-	Start.startStuff();
+	button Button;
+	std::cout << "Type config to configure the program" << std::endl;
+	std::wcout << "Press " << Button.GetName(Config.GetWindowKey()) << " to activate Anti-AFK for the current window" << std::endl;
 }

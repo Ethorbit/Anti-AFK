@@ -136,8 +136,8 @@ void registry::renameSubKeyString(const wchar_t* valName, const wchar_t* newName
 	RegCloseKey(regKey);
 }
 
-DWORD* registry::getAllSubkeys(const wchar_t* KeyName) {
-	DWORD AllValues[1048] = {0};
+std::vector<DWORD> registry::getAllSubkeys(const wchar_t* KeyName) {
+	std::vector<DWORD> AllValues;
 	HKEY regKey = openKey(KeyName);
 
 	// Get the name of every subkey:
@@ -151,18 +151,19 @@ DWORD* registry::getAllSubkeys(const wchar_t* KeyName) {
 	for (int i = 0; i < 1048; i++) {
 		subKeyValueSize = 1048; // Resize every time or else memory errors will occur
 	
-		if (RegEnumValueW(regKey, i, (LPWSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)&subKeyValues, &subKeyValueSize) == ERROR_SUCCESS) {
-			AllValues[i] = subKeyValues[0]; // It is unknown why the values are only written to index 0
-		} else if (RegEnumValueW(regKey, i, (LPWSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)&subKeyValues, &subKeyValueSize) != ERROR_NO_MORE_ITEMS) {
+		if (RegEnumValueW(regKey, i, (LPWSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)subKeyValues, &subKeyValueSize) == ERROR_SUCCESS) {
+			AllValues.push_back(subKeyValues[0]); // It is unknown why the values are only written to index 0
+		} else if (RegEnumValueW(regKey, i, (LPWSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)subKeyValues, &subKeyValueSize) != ERROR_NO_MORE_ITEMS) {
 			winError err(L"Error with enumerating registry subkeys");
 		}
 
-		if (RegEnumValueW(regKey, i, (LPWSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)&subKeyValues, &subKeyValueSize) == ERROR_NO_MORE_ITEMS) {
+		if (RegEnumValueW(regKey, i, (LPWSTR)&subKeyNames, &subKeyValueSize, NULL, &regType, (LPBYTE)subKeyValues, &subKeyValueSize) == ERROR_NO_MORE_ITEMS) {
 			break; // Save resources by stopping the loop when there are no more subkeys
 		}
 	}
 
 	RegCloseKey(regKey);
+	//std::cout << AllValues[0] << std::endl;
 	return AllValues;
 }
 
