@@ -6,7 +6,6 @@
 #include "winError.h"
 #include "config.h"
 #include "registry.h"
-#include "start.h"
 #include "afkFind.h"
 #include "button.h"
 #include "CurrentWindow.h"
@@ -63,60 +62,80 @@ int main()
 	// Handle ALL console outputting here (Doing std::cout on multiple threads causes unpredicted errors!)
 	auto commandLoop = []() {	
 		// Settings:
-		config Config;
-		if (Config.GetAFKTime() == 0) {
-			std::cout << "Amount of seconds to be AFK before automatic activity is applied:" << std::endl;
-			std::future<int> AFKTime = std::async([]
-			{
-				config Config;
-				return Config.SetAFKTime();
-			});
+		//config Config;
+		//if (Config.GetAFKTime() == 0) {
+		//	std::cout << "Amount of seconds to be AFK before automatic activity is applied:" << std::endl;
+		//	std::future<int> AFKTime = std::async([]
+		//	{
+		//		config Config;
+		//		return Config.SetAFKTime();
+		//	});
 
-			int secAmount = AFKTime.get();
-			if (secAmount > 1)
-			{
-				std::cout << "Set AFK time to " << secAmount << " seconds." << std::endl;
-			}
-			else
-			{
-				std::cout << "Set AFK time to 1 second." << std::endl;
-			}
+		//	int secAmount = AFKTime.get();
+		//	if (secAmount > 1)
+		//	{
+		//		std::cout << "Set AFK time to " << secAmount << " seconds." << std::endl;
+		//	}
+		//	else
+		//	{
+		//		std::cout << "Set AFK time to 1 second." << std::endl;
+		//	}
 
-			Sleep(500);
-		}
+		//	Sleep(500);
+		//}
 
-		if (Config.GetButtonCount() == 0) {
-			std::cout << "Press a key" << std::endl;
-			HCurButton = _getch();
-			const wchar_t* timeFormat = L"";
-			std::future<const wchar_t*> btnTimeFormat = std::async([]
-				{
-					config Config;
-					return Config.AddButton();
-				});
+		//if (Config.GetButtonCount() == 0) 
+		//{
+		//	std::cout << "What button should be automatically pressed when AFK?" << std::endl;
 
-			timeFormat = btnTimeFormat.get();
-			config Config;
-			button Button;
-			std::wcout << "How many seconds should " << Button.GetName(Config.GetButtons()[Config.GetButtonCount() - 1]) << " be held for? (Max is: " << Config.GetAFKTime() << ")" << std::endl;
-			Config.SetButtonTime(timeFormat);
-			std::wcout << "Added " << Button.GetName(Config.GetButtons()[Config.GetButtonCount() - 1]) << " to Anti-AFK. Total buttons added: " << Config.GetButtonCount() << std::endl;
-			Sleep(1000);
-		}
+		//	HCurButton = 0;
+		//	Sleep(100);
+		//	while (HCurButton == 0)
+		//	{
+		//		Sleep(50);
+		//	}
 
-		if (Config.GetWindowKey() == 0) {
-			button Button;
-			std::cout << "What button should be used to select the current window for Anti-AFK to use?" << std::endl;
+		//	std::cout << "APPARENTLY YOU SET THE BUTTON TO: " << HCurButton << std::endl;
+		//	int btnVal = HCurButton;
+		//	registry Reg;
+		//	Config.SetButtonCount(Config.GetButtonCount() + 1);
+		//	wchar_t buttonFormat[400] = L"";
+		//	wchar_t buttonTimeFormat[400] = L"";
+		//	swprintf_s(buttonFormat, sizeof(buttonFormat) / sizeof(wchar_t), L"Button%i", Config.GetButtonCount());
+		//	swprintf_s(buttonTimeFormat, sizeof(buttonTimeFormat) / sizeof(wchar_t), L"Button%iTime", Config.GetButtonCount());
+		//	Reg.writeSubkey(L"Software\\AntiAFK\\Buttons", buttonFormat, btnVal);
+		//	Reg.writeSubkey(L"Software\\AntiAFK\\ButtonTimes", buttonTimeFormat, 0); // Save as 0 seconds incase the next part never finishes
+		//	//return buttonTimeFormat;
 
-			std::future<int> button = std::async([]
-				{
-					config Config;
-					return Config.SetWindowKey();
-				});
+		//	//const wchar_t* timeFormat = L"";
+		//	//std::future<const wchar_t*> btnTimeFormat = std::async([]
+		//	//{
+		//	//	config Config;
+		//	//	return Config.AddButton();
+		//	//});
 
-			std::wcout << "Set select window key to " << Button.GetName(button.get()) << std::endl;
-			Sleep(500);
-		}
+		//	//timeFormat = buttonTimeFormat;
+		//	config Config;
+		//	button Button;
+		//	std::wcout << "How many seconds should " << Button.GetName(Config.GetButtons()[Config.GetButtonCount() - 1]) << " be held for? (Max is: " << Config.GetAFKTime() << ")" << std::endl;
+		//	Config.SetButtonTime(buttonTimeFormat);
+		//	std::wcout << "Added " << Button.GetName(Config.GetButtons()[Config.GetButtonCount() - 1]) << " to Anti-AFK. Total buttons added: " << Config.GetButtonCount() << std::endl;
+		//	Sleep(1000);
+		//}
+
+		//if (Config.GetWindowKey() == 0) {
+		//	button Button;
+		//	std::cout << "What button should be used to select the current window for Anti-AFK to use?" << std::endl;
+
+		//	std::future<int> button = std::async([]
+		//		{
+		//			config Config;
+		//			return Config.SetWindowKey();
+		//		});
+
+		//	std::wcout << "Set select window key to " << Button.GetName(button.get()) << std::endl;
+		//	Sleep(500);
+		//}
 
 		button Button;
 		auto RefreshScr = [&Button](std::string text) {
@@ -124,8 +143,15 @@ int main()
 
 			system("cls");
 			std::cout << "Type config to configure the program" << std::endl;
-			std::wcout << "Press " << Button.GetName(Config.GetWindowKey()) << " to activate Anti-AFK for the current window" << std::endl;
-
+			if (Config.GetWindowKey() == 0)
+			{
+				std::cout << "Press (UNCONFIGURED KEY) to activate Anti-AFK for the current window" << std::endl;
+			}
+			else
+			{
+				std::wcout << "Press " << Button.GetName(Config.GetWindowKey()) << " to activate Anti-AFK for the current window" << std::endl;
+			}
+			
 			if (text.length() > 0) {
 				std::cout << text;
 			}	
@@ -442,26 +468,45 @@ int main()
 
 	auto buttonLoop = []()
 	{
-		config Config;
-
 		// Get the current window when the user saved key bind is pressed:
 		bool windowSelected = false;
 		HCurButton = -1; // Reset in case the last button was the select window key
 		while (true) 
 		{
+			config Config;
 			Sleep(10);
-			if (HCurButton == Config.GetWindowKey() && HConfigure == false)
+			if (Config.GetWindowKey() != 0 && HCurButton == Config.GetWindowKey() && HConfigure == false)
 			{
-				HPause = (HPause == true) ? false : true;
 				HCurButton = 0;
-
-				if (HPause == true)
+				if (Config.GetAFKTime() == 0)
 				{
-					CurrentWindow curWin;
-					HAntiAFKWindow = curWin.GetCurrentWindow(); // Let the keyboard hook know what the selected window is
-					afkFind afk(Config.GetAFKTime());
+					std::cout << "ERROR: AFKTime not set! Go to config to set." << std::endl;
+				}
+				if (Config.GetButtonFrequency() == 0)
+				{
+					std::cout << "ERROR: Input frequency not set! Go to config to set." << std::endl;
+				}
+				if (Config.GetButtonCount() == 0 && Config.GetCoordCount() == 0)
+				{
+					std::cout << "ERROR: No buttons or mouse coordinates set! Go to config to add one." << std::endl;
+				}
+
+				if (Config.GetAFKTime() != 0 && Config.GetButtonFrequency() != 0)
+				{
+					if (Config.GetButtonCount() != 0 || Config.GetCoordCount() != 0)
+					{
+						HPause = (HPause == true) ? false : true;
+				
+						if (HPause == true)
+						{
+							CurrentWindow curWin;
+							HAntiAFKWindow = curWin.GetCurrentWindow(); // Let the keyboard hook know what the selected window is
+							afkFind afk(Config.GetAFKTime());
+						}
+					}
 				}
 			}
+			Sleep(100);
 		}
 	};
 
