@@ -16,7 +16,6 @@ LRESULT CALLBACK KeyboardPress(int nCode, WPARAM wParam, LPARAM lParam) {
 
 	if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) {
 		HCurButton = kbStruct->vkCode;
-	 
 		if (kbStruct->vkCode == VK_ESCAPE) {
 			if (GetForegroundWindow() == GetConsoleWindow()) { // Don't exit if they do escape in another window
 				HExit = true;
@@ -394,30 +393,30 @@ int main()
 		// Get the current window when the user saved key bind is pressed:
 		bool windowSelected = false;
 		HCurButton = -1; // Reset in case the last button was the select window key
-		config Config;
 		while (true) 
 		{
+			config Config;
 			Sleep(10);
 			if (Config.GetWindowKey() != 0 && HCurButton == Config.GetWindowKey() && HConfigure == false)
 			{
-				//HCurButton = 0;
-				//if (Config.GetAFKTime() == 0)
-				//{
-				//	std::cout << "ERROR: AFKTime not set! Go to config to set." << std::endl;
-				//}
-				//if (Config.GetButtonFrequency() == 0)
-				//{
-				//	std::cout << "ERROR: Input frequency not set! Go to config to set." << std::endl;
-				//}
-				//if (Config.GetButtonCount() == 0 && Config.GetCoordCount() == 0)
-				//{
-				//	std::cout << "ERROR: No buttons or mouse coordinates set! Go to config to add one." << std::endl;
-				//}
+				HCurButton = 0;
+				if (Config.GetAFKTime() == 0)
+				{
+					std::cout << "ERROR: AFKTime not set! Go to config to set." << std::endl;
+				}
+				if (Config.GetButtonFrequency() == 0)
+				{
+					std::cout << "ERROR: Input frequency not set! Go to config to set." << std::endl;
+				}
+				if (Config.GetButtonCount() == 0 && Config.GetCoordCount() == 0)
+				{
+					std::cout << "ERROR: No buttons or mouse coordinates set! Go to config to add one." << std::endl;
+				}
 
-				//if (Config.GetAFKTime() != 0 && Config.GetButtonFrequency() != 0)
-				//{
-				//	if (Config.GetButtonCount() != 0 || Config.GetCoordCount() != 0)
-				//	{
+				if (Config.GetAFKTime() != 0 && Config.GetButtonFrequency() != 0)
+				{
+					if (Config.GetButtonCount() != 0 || Config.GetCoordCount() != 0)
+					{
 						HPause = (HPause == true) ? false : true;
 				
 						if (HPause == true)
@@ -425,11 +424,11 @@ int main()
 							CurrentWindow curWin;
 							HAntiAFKWindow = curWin.GetCurrentWindow(); // Let the keyboard hook know what the selected window is
 							afkFind afk(Config.GetAFKTime());
-							std::cout << "TEST" << std::endl;
 						}
 					}
-			//	}
-			//}
+				}
+			}
+			Sleep(100);
 		}
 	};
 
