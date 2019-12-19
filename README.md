@@ -14,8 +14,8 @@ While there is no guarantee that Anti-AFK is Anti-Cheat proof, it is guaranteed 
 * Mouse coordinates to move the mouse to (For direct X game input only, higher value is further from the crosshair) 
 
 
-## Download the executable:
+# Download the executable:
 https://github.com/Ethorbit/Anti-AFK/releases/latest
 
-### Requires x86 Visual C++
+## Requires x86 Visual C++
 https://aka.ms/vs/16/release/vc_redist.x86.exe
