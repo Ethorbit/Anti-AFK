@@ -3,7 +3,6 @@
 #include <thread>
 #include "registry.h"
 #include "button.h"
-#include "start.h"
 #include "Anti-AFK.h"
 
 registry Reg;
