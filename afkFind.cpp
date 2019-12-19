@@ -52,9 +52,19 @@ afkFind::afkFind(int afkSeconds) {
 		}
 
 		// Randomize values from saved buttons/mousecoord arrays:
-		int RandKey = std::rand() % Config.GetButtonCount();
-		int RandCoord = std::rand() % Config.GetCoordCount();
-
+		int RandKey = -1;
+		int RandCoord = -1;
+		
+		if (Config.GetButtonCount() > 0)
+		{
+			RandKey = std::rand() % Config.GetButtonCount();
+		}
+		
+		if (Config.GetCoordCount() > 0)
+		{
+			RandCoord = std::rand() % Config.GetCoordCount();
+		}
+		
 		// Randomize seed for randomized arrays:
 		auto randomizeKey = [&RandKey, &Config]() {
 			SYSTEMTIME time;
@@ -102,20 +112,23 @@ afkFind::afkFind(int afkSeconds) {
 				HAutoPress = false;
 			};
 
-			if (ButtonTimes[RandKey] == 0) {
-				parseButton();
-			}
+			if (RandKey != -1) // Only hold & let go of keys if there are keys to press
+			{
+				if (ButtonTimes[RandKey] == 0) {
+					parseButton();
+				}
 
-			while (std::chrono::system_clock::now() <= holdTime) {
-				Sleep(100); // Input keys at a natural speed
-				parseButton();			
-			}
+				while (std::chrono::system_clock::now() <= holdTime) {
+					Sleep(100); // Input keys at a natural speed
+					parseButton();			
+				}
 
-			// Let go of the key:
-			input.ki.dwFlags = KEYEVENTF_KEYUP;
-			HAutoPress = true;
-			SendInput(1, &input, sizeof(input));
-			HAutoPress = false;
+				// Let go of the key:
+				input.ki.dwFlags = KEYEVENTF_KEYUP;
+				HAutoPress = true;
+				SendInput(1, &input, sizeof(input));
+				HAutoPress = false;
+			}
 
 			if (PrevWnd != NULL) { // Set the window and cursor back to what they were before
 				SetForegroundWindow(PrevWnd);
