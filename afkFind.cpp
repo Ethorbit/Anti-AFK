@@ -145,7 +145,6 @@ afkFind::afkFind(int afkSeconds) {
 			}
 
 			if (PrevWnd != NULL) { // Set the window and cursor back to what they were before
-				std::cout << "should be back" << std::endl;
 				SetForegroundWindow(PrevWnd);
 				SetCursorPos(oldCursorX, oldCursorY);
 				HAutoWindow = false;
