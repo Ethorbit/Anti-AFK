@@ -2,7 +2,6 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include "start.h"
 #include "config.h"
 #include "registry.h"
 #include "button.h"
