@@ -10,3 +10,6 @@ While there is no guarantee that Anti-AFK is Anti-Cheat proof, it is guaranteed 
 
 ## Download the executable:
 https://github.com/Ethorbit/Anti-AFK/releases/latest
+
+### Requires x86 Visual C++
+https://aka.ms/vs/16/release/vc_redist.x86.exe
