@@ -133,6 +133,11 @@ afkFind::afkFind(int afkSeconds) {
 				}
 
 				while (std::chrono::system_clock::now() <= holdTime) {
+					if (HExit == true)
+					{
+						break;
+					}
+
 					Sleep(100); // Input keys at a natural speed
 					parseButton();			
 				}
@@ -169,6 +174,10 @@ afkFind::afkFind(int afkSeconds) {
 					// Button frequency:
 					auto endTime = std::chrono::system_clock::now() + std::chrono::seconds(Config.GetButtonFrequency());
 					while (std::chrono::system_clock::now() < endTime) {
+						if (HExit == true)
+						{
+							break;
+						}
 						Sleep(50); // Prevent big CPU usage
 					}
 					endTime = std::chrono::system_clock::now() + std::chrono::seconds(Config.GetButtonFrequency());
