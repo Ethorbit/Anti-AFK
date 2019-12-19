@@ -3,7 +3,7 @@ Anti-AFK is a completely external program that can execute buttons and move your
 
 Anti-AFK can detect when you're inactive for the selected window even if you are alt tabbed doing stuff in the background and can still apply activity in it. 
 
-While there is no guarantee that Anti-AFK is Anti-Cheat proof, it is guaranteed that keyboard and mouse inputs will seem natural and will look like someone did them manually.
+While there is no guarantee that Anti-AFK is Anti-Cheat proof, it is guaranteed that keyboard and mouse inputs will seem natural, the mouse input will be instant though and will look unnatural if someone is watching you but the program will most likely not be able to determine that.
 
 ## Customization:
 #### Anti-AFK is highly customizable and you are able to change:
